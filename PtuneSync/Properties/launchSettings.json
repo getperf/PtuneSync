@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PtuneSync (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PtuneSync (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

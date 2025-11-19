@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PtuneSync", "PtuneSync\PtuneSync.csproj", "{4DA8CF6C-52ED-47B6-85BB-1822B822022E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PtuneSync.Tests", "PtuneSync.Tests\PtuneSync.Tests.csproj", "{18BDFD8A-4B39-4916-90BF-C3100A69E299}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|ARM64.Build.0 = Debug|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x64.ActiveCfg = Debug|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x64.Build.0 = Debug|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x64.Deploy.0 = Debug|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x86.ActiveCfg = Debug|x86
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x86.Build.0 = Debug|x86
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Debug|x86.Deploy.0 = Debug|x86
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|ARM64.ActiveCfg = Release|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|ARM64.Build.0 = Release|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|ARM64.Deploy.0 = Release|ARM64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x64.ActiveCfg = Release|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x64.Build.0 = Release|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x64.Deploy.0 = Release|x64
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x86.ActiveCfg = Release|x86
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x86.Build.0 = Release|x86
+		{4DA8CF6C-52ED-47B6-85BB-1822B822022E}.Release|x86.Deploy.0 = Release|x86
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|x64.ActiveCfg = Debug|x64
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|x64.Build.0 = Debug|x64
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Debug|x86.Build.0 = Debug|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|ARM64.Build.0 = Release|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|x64.ActiveCfg = Release|x64
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|x64.Build.0 = Release|x64
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|x86.ActiveCfg = Release|Any CPU
+		{18BDFD8A-4B39-4916-90BF-C3100A69E299}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {982FE2F9-9A9E-453C-8D31-A8CD7CC947DA}
+	EndGlobalSection
+EndGlobal

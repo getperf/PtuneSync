@@ -1,0 +1,72 @@
+# Visual Studio build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# VS cache
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# UWP specific
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+Package.appxmanifest.user
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.appxsym
+*.msixsym
+*.eappx
+
+# Windows App Certification Kit results
+TestResults/
+*.appxupload
+
+# Local settings / logs
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+*.local
+*.db
+*.db-wal
+*.db-shm
+
+# Resharper / Rider
+_ReSharper*/
+*.DotSettings.user
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+# Others
+*.swp
+*~
+*.tmp
+*.bak
+*.cache
+*.config
+*.orig
+
+# UWP LocalState (runtime files, OAuth tokens, logs)
+**/AppData/Local/Packages/*/LocalState/*
+!**/AppData/Local/Packages/*/LocalState/.gitkeep

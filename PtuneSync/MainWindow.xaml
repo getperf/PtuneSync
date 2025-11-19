@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="PtuneSync.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="PtuneSync">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid Padding="24" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+        <StackPanel Spacing="20" VerticalAlignment="Center">
+
+            <!-- 見出し -->
+            <TextBlock Text="PtuneSync" FontSize="20" FontWeight="SemiBold"/>
+
+            <!-- 枠付きメッセージカード -->
+            <Border
+                CornerRadius="12"
+                BorderThickness="1"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock TextWrapping="Wrap" FontSize="14">
+                        <Run Text="PtuneSync は Obsidian プラグイン「ptune-log」と連携して動作します。" />
+                        <LineBreak/>
+                        <Run Text="本アプリは Google Tasks の認証・インポート・エクスポートを担当します。" />
+                        <LineBreak/><LineBreak/>
+                        <Run Text="現在は「ptune-log」からの起動のバックグラウンド動作のみ対応しており、今後この画面にタスク編集機能を追加予定です。" />
+                        <LineBreak/><LineBreak/>
+                        <Run Text="「ptune-log」との連携手順は、公式ドキュメント（ https://getperf.net/ptune ）を参照してください。" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- 見栄え改善ボタン -->
+            <Button
+                Content="閉じる"
+                Width="120"
+                Style="{StaticResource AccentButtonStyle}"
+                HorizontalAlignment="Center"
+                Click="OnCloseClicked"/>
+        </StackPanel>
+    </Grid>
+
+</Window>
