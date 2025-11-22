@@ -3,21 +3,33 @@ param(
     [string]$Platform = "x64"
 )
 
-Write-Host "== Build =="
+Write-Host "== PtuneSync Build (MSIX) =="
 
-# Visual Studio 2022 の MSBuild を使用
-$vs2022 = "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+$vsMsbuild = "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 
-if (Test-Path $vs2022) {
-    & $vs2022 "$PSScriptRoot\..\PtuneSync.csproj" `
-        /p:Configuration=$Config `
-        /p:Platform=$Platform `
-        /p:GenerateAppxPackageOnBuild=true
+if (!(Test-Path $vsMsbuild)) {
+    Write-Host "[ERROR] MSBuild not found: $vsMsbuild"
+    exit 1
 }
-else {
-    # Write-Host "MSBuild 17.x (VS2022) が見つかりません。dotnet build にフォールバックします。"
-    dotnet build "$PSScriptRoot\..\PtuneSync.csproj" `
-        -c $Config `
-        -p:Platform=$Platform `
-        -p:GenerateAppxPackageOnBuild=true
+
+$env:BuildingFromScript = "true"
+
+Write-Host "== Cleaning manifest cache =="
+Get-ChildItem "$PSScriptRoot\..\obj\" -Filter *.manifest -Recurse |
+Remove-Item -Force -ErrorAction SilentlyContinue
+
+Write-Host "== Build start =="
+& $vsMsbuild "$PSScriptRoot\..\PtuneSync.csproj" `
+    /t:"Restore;Build" `
+    /p:Configuration=$Config `
+    /p:Platform=$Platform `
+    /p:GenerateAppxPackageOnBuild=true `
+    /p:AppxPackageValidationEnabled=false `
+    /p:BuildingFromScript=true
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "== Build FAILED =="
+    exit 1
 }
+
+Write-Host "== Build SUCCESS =="
