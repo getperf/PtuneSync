@@ -10,7 +10,7 @@
   <Identity
     Name="Getperf.PtuneSync"
     Publisher="CN=23AC604C-6803-421F-8152-B36628D2ED05"
-    Version="1.0.0.0" />
+    Version="1.0.4.0" />
 
   <mp:PhoneIdentity PhoneProductId="64c6534d-6d14-4473-845a-36a7b4412775" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

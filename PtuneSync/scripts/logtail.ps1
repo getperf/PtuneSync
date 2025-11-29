@@ -2,8 +2,8 @@ param (
     [string]$DateStr = $(Get-Date -Format 'yyyyMMdd')
 )
 
-$logPath = "$env:LOCALAPPDATA\Packages\PtuneSync_4bqfqzfzcr10c\LocalState\logs\app$DateStr.log"
-
+#$logPath = "$env:LOCALAPPDATA\Packages\PtuneSync_4bqfqzfzcr10c\LocalState\logs\app$DateStr.log"
+$logPath = "$env:LOCALAPPDATA\Packages\Getperf.PtuneSync_mex14frpm041c\LocalState\logs\app$DateStr.log"
 Write-Host "Waiting for: $logPath"
 
 $timeout = 60
