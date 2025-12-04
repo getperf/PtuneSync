@@ -1,17 +1,14 @@
-﻿using System;
+﻿// File: PtuneSync/App.xaml.cs
+using System;
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using PtuneSync.Infrastructure;
-using Serilog;
-using LaunchActivatedEventArgs = Microsoft.UI.Xaml.LaunchActivatedEventArgs;
 
 namespace PtuneSync;
 
 public partial class App : Application
 {
-    private readonly bool _isProtocolLaunch;
-
     public App()
     {
         InitializeComponent();
@@ -25,47 +22,32 @@ public partial class App : Application
             return;
         }
 
-        // 起動種別をここで特定
-        var currentArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-        _isProtocolLaunch = currentArgs.Kind == ExtendedActivationKind.Protocol;
-
         AppConfigManager.LoadOrCreate();
         AppLog.Init(AppConfigManager.Config);
 
-        AppLog.Info("[App] Started.");
         AppInstance.GetCurrent().Activated += OnAppActivated;
-
-        var pkg = Windows.ApplicationModel.Package.Current;
-        AppLog.Info("[App] PFN={0}", pkg.Id.FamilyName);
-        AppLog.Info("[App] PID={0}", Process.GetCurrentProcess().Id);
-        AppLog.Info("[App] LaunchMode={0}", _isProtocolLaunch ? "Protocol" : "Normal");
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
 
-        if (activation.Kind == ExtendedActivationKind.Protocol)
+        if (LaunchModeService.GetLaunchMode(activation) == LaunchMode.Protocol)
         {
-            AppLog.Info("[App] Protocol launch detected -> skip GUI");
+            AppLog.Info("[App] Protocol launch → skip UI");
             return;
         }
 
-        AppLog.Info("[App] Normal launch -> show window");
+        AppLog.Info("[App] Normal launch → show UI");
+
         var window = new MainWindow();
+        window.InitializeViewModelForUI();   // ← 新規メソッド呼び出し
         window.Activate();
     }
 
     private void OnAppActivated(object? sender, AppActivationArguments args)
     {
-        try
-        {
-            if (args.Kind == ExtendedActivationKind.Protocol)
-                AppLaunchController.HandleActivation(args);
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error(ex, "[App] OnAppActivated failed");
-        }
+        if (LaunchModeService.GetLaunchMode(args) == LaunchMode.Protocol)
+            AppLaunchController.HandleActivation(args);
     }
 }
