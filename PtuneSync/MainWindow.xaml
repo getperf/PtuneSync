@@ -1,41 +1,9 @@
+<!-- File: MainWindow.xaml -->
 <Window
     x:Class="PtuneSync.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:models="using:PtuneSync.Models">
+    xmlns:views="using:PtuneSync.Views">
 
-    <Grid Padding="24">
-        <StackPanel Spacing="16">
-
-            <TextBlock Text="今日のタスク" FontSize="20" FontWeight="SemiBold"/>
-
-            <ListView ItemsSource="{Binding Tasks}">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="models:TaskItem">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-
-                            <CheckBox
-                                IsChecked="{x:Bind IsChild, Mode=TwoWay}"
-                                Width="40"/>
-
-                            <TextBox
-                                Text="{x:Bind Title, Mode=TwoWay}"
-                                Width="300"/>
-
-                            <TextBox
-                                Text="{x:Bind Pomodoro, Mode=TwoWay}"
-                                Width="50"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Content="親タスク追加" Click="OnAddParentTaskClicked"/>
-                <Button Content="子タスク追加" Click="OnAddChildTaskClicked"/>
-                <Button Content="エクスポート" Click="OnExportClicked"/>
-            </StackPanel>
-
-        </StackPanel>
-    </Grid>
+    <views:TaskEditorView />
 </Window>

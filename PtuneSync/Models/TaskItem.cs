@@ -1,9 +1,26 @@
-// File: PtuneSync/Models/TaskItem.cs
+// File: Models/TaskItem.cs
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 namespace PtuneSync.Models;
 
-public class TaskItem
+public class TaskItem : INotifyPropertyChanged
 {
-    public string Title { get; set; } = "";
-    public int Pomodoro { get; set; }
-    public bool IsChild { get; set; } // true = 子タスク
+    private string _title = string.Empty;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title == value) return;
+            _title = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

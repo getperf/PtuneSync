@@ -41,7 +41,6 @@ public partial class App : Application
         AppLog.Info("[App] Normal launch → show UI");
 
         var window = new MainWindow();
-        window.InitializeViewModelForUI();   // ← 新規メソッド呼び出し
         window.Activate();
     }
 
