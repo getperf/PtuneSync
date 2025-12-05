@@ -13,16 +13,31 @@
     <Grid Padding="24">
         <StackPanel Spacing="16">
 
-            <TextBlock Text="Task Editor"
-                       FontSize="20"
-                       FontWeight="SemiBold" />
+            <TextBlock Text="Task Editor" FontSize="20" FontWeight="SemiBold" />
 
-            <!-- ★ ListView + DataTemplate ★ -->
             <ListView ItemsSource="{Binding Tasks}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:TaskItem">
-                        <TextBox Text="{x:Bind Title, Mode=TwoWay}"
-                                 Width="300" />
+                        <Grid Margin="0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />      <!-- 左列：可変（TextBox） -->
+                                <ColumnDefinition Width="50" />     <!-- 右列：固定（ボタン） -->
+                            </Grid.ColumnDefinitions>
+
+                            <!-- TextBox（インデントをここで適用） -->
+                            <TextBox Grid.Column="0"
+                                    Margin="{x:Bind Indent}"
+                                    Text="{x:Bind Title, Mode=TwoWay}"
+                                    HorizontalAlignment="Stretch"
+                                    Height="38"/>
+
+                            <!-- 親/子切り替えボタン（右端に固定配置） -->
+                            <Button Grid.Column="1"
+                                    Content="⇄"
+                                    Width="40"
+                                    HorizontalAlignment="Right"
+                                    Click="OnToggleHierarchyClicked"/>
+                        </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
