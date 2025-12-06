@@ -34,6 +34,18 @@ public sealed partial class TaskEditorView : UserControl
         }
     }
 
+    private void OnAddTaskClicked(object sender, RoutedEventArgs e)
+    {
+        AppLog.Info("[UI] AddTask clicked");
+
+        if (DataContext is TaskEditorViewModel vm)
+        {
+            var newTask = vm.AddTask();
+            AppLog.Info("[UI] Added new task: Index={0}, IsChild={1}",
+                newTask.Index, newTask.IsChild);
+        }
+    }
+    
     // 削除処理
     private void OnDeleteTaskClicked(object sender, RoutedEventArgs e)
     {

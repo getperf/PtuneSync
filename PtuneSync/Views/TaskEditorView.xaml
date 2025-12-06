@@ -1,4 +1,3 @@
-<!-- File: Views/TaskEditorView.xaml -->
 <UserControl
     x:Class="PtuneSync.Views.TaskEditorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -17,7 +16,8 @@
                        FontSize="20"
                        FontWeight="SemiBold" />
 
-            <ListView ItemsSource="{Binding Tasks}">
+            <ListView x:Name="TaskListView"
+                      ItemsSource="{Binding Tasks}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:TaskItem">
 
@@ -47,12 +47,12 @@
                                     Content="⇄"
                                     HorizontalAlignment="Right"
                                     Click="OnToggleHierarchyClicked" />
-
-                            <!-- ★ 削除ボタン -->
+                            <!-- 削除ボタン -->
                             <Button Grid.Column="3"
                                     Content="✕"
                                     HorizontalAlignment="Center"
                                     Click="OnDeleteTaskClicked" />
+
 
                         </Grid>
 
@@ -60,6 +60,10 @@
                 </ListView.ItemTemplate>
             </ListView>
 
+            <!-- ★ 追加したボタン -->
+            <Button Content="＋ タスク追加"
+                    HorizontalAlignment="Left"
+                    Click="OnAddTaskClicked" />
         </StackPanel>
     </Grid>
 </UserControl>
