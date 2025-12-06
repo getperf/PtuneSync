@@ -20,6 +20,7 @@
             <ListView ItemsSource="{Binding Tasks}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:TaskItem">
+
                         <Grid Margin="0,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -29,7 +30,7 @@
 
                             <!-- タイトル（Indent 再描画対応） -->
                             <TextBox Grid.Column="0"
-                                    Margin="{x:Bind Indent, Mode=OneWay}"
+                                    Margin="{Binding Indent}"
                                     Text="{x:Bind Title, Mode=TwoWay}"
                                     Height="36"
                                     HorizontalAlignment="Stretch" />
@@ -40,12 +41,14 @@
                                     HorizontalAlignment="Center"
                                     Click="OnIncrementPomodoroClicked" />
 
-                            <!-- 親/子切替ボタン -->
+                            <!-- 親/子切替ボタン（1行目は無効） -->
                             <Button Grid.Column="2"
                                     Content="⇄"
                                     HorizontalAlignment="Right"
+                                    IsEnabled="{Binding IsToggleEnabled}"
                                     Click="OnToggleHierarchyClicked" />
                         </Grid>
+
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

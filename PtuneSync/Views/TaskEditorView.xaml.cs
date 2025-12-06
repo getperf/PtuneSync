@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PtuneSync.Models;
-using PtuneSync.Infrastructure;  // ← 重要：AppLog を使う場合
+using PtuneSync.Infrastructure;
 
 namespace PtuneSync.Views;
 
@@ -16,16 +16,10 @@ public sealed partial class TaskEditorView : UserControl
     // 🍅xN インクリメント
     private void OnIncrementPomodoroClicked(object sender, RoutedEventArgs e)
     {
-        AppLog.Info("[UI] Increment button clicked");
-
-        if (sender is Button btn2)
-            AppLog.Info($"[UI] sender={btn2.GetType().Name}, DataContext={btn2.DataContext}");
-
         if (sender is Button btn && btn.DataContext is TaskItem item)
         {
-            AppLog.Info($"[UI] Increment before: {item.PlannedPomodoroCount}");
             item.IncrementPomodoro(5);
-            AppLog.Info($"[UI] Increment after: {item.PlannedPomodoroCount}");
+            AppLog.Info($"[UI] Increment - Title: {item.Title}, Row: {item.Index}, Pomodoro: {item.PlannedPomodoroCount}");
         }
         else
         {
@@ -33,16 +27,19 @@ public sealed partial class TaskEditorView : UserControl
         }
     }
 
-    // 親/子切替
+    // 親/子切替（1行目は無効）
     private void OnToggleHierarchyClicked(object sender, RoutedEventArgs e)
     {
-        AppLog.Info("[UI] ToggleHierarchy clicked");
-
         if (sender is Button btn && btn.DataContext is TaskItem item)
         {
-            AppLog.Info($"[UI] Toggle before: IsChild={item.IsChild}");
+            if (item.Index == 0)
+            {
+                AppLog.Info("[UI] First row toggle ignored (always parent)");
+                return;
+            }
+
             item.IsChild = !item.IsChild;
-            AppLog.Info($"[UI] Toggle after: IsChild={item.IsChild}");
+            AppLog.Info($"[UI] Toggle hierarchy - Title: {item.Title}, Row: {item.Index}, IsChild: {item.IsChild}");
         }
         else
         {
