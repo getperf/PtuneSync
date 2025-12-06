@@ -11,9 +11,8 @@ public class TaskEditorViewModel
 
     public TaskEditorViewModel()
     {
-        // 初期表示用のテストデータ
         Tasks.Add(new TaskItem { Title = "親タスク A", IsChild = false });
-        Tasks.Add(new TaskItem { Title = "子タスク B", IsChild = true });
-        Tasks.Add(new TaskItem { Title = "親タスク C", IsChild = false });
+        Tasks.Add(new TaskItem { Title = "子タスク B", IsChild = true, PlannedPomodoroCount = 2 });
+        Tasks.Add(new TaskItem { Title = "親タスク C", IsChild = false, PlannedPomodoroCount = 1 });
     }
 }

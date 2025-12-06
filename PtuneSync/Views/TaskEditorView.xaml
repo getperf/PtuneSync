@@ -13,30 +13,38 @@
     <Grid Padding="24">
         <StackPanel Spacing="16">
 
-            <TextBlock Text="Task Editor" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Text="Task Editor"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
 
             <ListView ItemsSource="{Binding Tasks}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:TaskItem">
                         <Grid Margin="0,4">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />      <!-- 左列：可変（TextBox） -->
-                                <ColumnDefinition Width="50" />     <!-- 右列：固定（ボタン） -->
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="50" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- TextBox（インデントをここで適用） -->
+                            <!-- タイトル（Indent 再描画対応） -->
                             <TextBox Grid.Column="0"
-                                    Margin="{x:Bind Indent}"
+                                    Margin="{x:Bind Indent, Mode=OneWay}"
                                     Text="{x:Bind Title, Mode=TwoWay}"
-                                    HorizontalAlignment="Stretch"
-                                    Height="38"/>
+                                    Height="36"
+                                    HorizontalAlignment="Stretch" />
 
-                            <!-- 親/子切り替えボタン（右端に固定配置） -->
+                            <!-- 🍅インクリメントボタン -->
                             <Button Grid.Column="1"
+                                    Content="{x:Bind PomodoroLabel, Mode=OneWay}"
+                                    HorizontalAlignment="Center"
+                                    Click="OnIncrementPomodoroClicked" />
+
+                            <!-- 親/子切替ボタン -->
+                            <Button Grid.Column="2"
                                     Content="⇄"
-                                    Width="40"
                                     HorizontalAlignment="Right"
-                                    Click="OnToggleHierarchyClicked"/>
+                                    Click="OnToggleHierarchyClicked" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

@@ -9,6 +9,7 @@ public class TaskItem : INotifyPropertyChanged
 {
     private string _title = string.Empty;
     private bool _isChild;
+    private int _plannedPomodoroCount;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -32,15 +33,38 @@ public class TaskItem : INotifyPropertyChanged
             _isChild = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Indent));
-            OnPropertyChanged(nameof(TitleWidth));
         }
     }
 
-    // 子タスクは左にインデント
+    // 0 のときはポモドーロ未設定
+    public int PlannedPomodoroCount
+    {
+        get => _plannedPomodoroCount;
+        set
+        {
+            if (_plannedPomodoroCount == value) return;
+            _plannedPomodoroCount = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PomodoroLabel));
+        }
+    }
+
+    // UI 表示用（0 → ""）
+    public string PomodoroLabel =>
+        PlannedPomodoroCount == 0 ? "" : $"🍅x{PlannedPomodoroCount}";
+
+    // 子タスクは左インデント
     public Thickness Indent => new Thickness(IsChild ? 24 : 0, 0, 0, 0);
 
-    // 親と子で TextBox の幅を変える（右端を揃える）
-    public double TitleWidth => IsChild ? 220 : 260;
+    // 0 → 1 → 2 → 3 → … → 0 と循環
+    public void IncrementPomodoro(int max = 5)
+    {
+        PlannedPomodoroCount++;
+        if (PlannedPomodoroCount > max)
+            PlannedPomodoroCount = 0;
+        OnPropertyChanged(nameof(PlannedPomodoroCount));
+        OnPropertyChanged(nameof(PomodoroLabel));
+    }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
