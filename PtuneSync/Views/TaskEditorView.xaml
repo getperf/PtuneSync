@@ -26,27 +26,34 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="40" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- タイトル（Indent 再描画対応） -->
+                            <!-- タイトル -->
                             <TextBox Grid.Column="0"
-                                    Margin="{Binding Indent}"
-                                    Text="{x:Bind Title, Mode=TwoWay}"
-                                    Height="36"
-                                    HorizontalAlignment="Stretch" />
+                                     Margin="{x:Bind Indent, Mode=OneWay}"
+                                     Text="{x:Bind Title, Mode=TwoWay}"
+                                     Height="36"
+                                     HorizontalAlignment="Stretch" />
 
-                            <!-- 🍅インクリメントボタン -->
+                            <!-- 🍅インクリメント -->
                             <Button Grid.Column="1"
                                     Content="{x:Bind PomodoroLabel, Mode=OneWay}"
                                     HorizontalAlignment="Center"
                                     Click="OnIncrementPomodoroClicked" />
 
-                            <!-- 親/子切替ボタン（1行目は無効） -->
+                            <!-- 親/子切替 -->
                             <Button Grid.Column="2"
                                     Content="⇄"
                                     HorizontalAlignment="Right"
-                                    IsEnabled="{Binding IsToggleEnabled}"
                                     Click="OnToggleHierarchyClicked" />
+
+                            <!-- ★ 削除ボタン -->
+                            <Button Grid.Column="3"
+                                    Content="✕"
+                                    HorizontalAlignment="Center"
+                                    Click="OnDeleteTaskClicked" />
+
                         </Grid>
 
                     </DataTemplate>

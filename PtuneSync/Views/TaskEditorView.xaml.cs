@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PtuneSync.Models;
 using PtuneSync.Infrastructure;
+using PtuneSync.ViewModels;
 
 namespace PtuneSync.Views;
 
@@ -18,32 +19,32 @@ public sealed partial class TaskEditorView : UserControl
     {
         if (sender is Button btn && btn.DataContext is TaskItem item)
         {
+            AppLog.Info("[UI] Increment: {0}", item.Title);
             item.IncrementPomodoro(5);
-            AppLog.Info($"[UI] Increment - Title: {item.Title}, Row: {item.Index}, Pomodoro: {item.PlannedPomodoroCount}");
-        }
-        else
-        {
-            AppLog.Warn("[UI] Increment handler: TaskItem not found in DataContext");
         }
     }
 
-    // 親/子切替（1行目は無効）
+    // 親/子切替
     private void OnToggleHierarchyClicked(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.DataContext is TaskItem item)
         {
-            if (item.Index == 0)
-            {
-                AppLog.Info("[UI] First row toggle ignored (always parent)");
-                return;
-            }
-
+            AppLog.Info("[UI] ToggleHierarchy: {0}", item.Title);
             item.IsChild = !item.IsChild;
-            AppLog.Info($"[UI] Toggle hierarchy - Title: {item.Title}, Row: {item.Index}, IsChild: {item.IsChild}");
         }
-        else
+    }
+
+    // 削除処理
+    private void OnDeleteTaskClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is TaskItem item)
         {
-            AppLog.Warn("[UI] Toggle handler: TaskItem not found in DataContext");
+            AppLog.Info("[UI] Delete clicked: {0}", item.Title);
+
+            if (DataContext is TaskEditorViewModel vm)
+            {
+                vm.DeleteTask(item);
+            }
         }
     }
 }

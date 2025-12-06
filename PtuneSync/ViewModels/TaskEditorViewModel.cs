@@ -11,7 +11,6 @@ public class TaskEditorViewModel
 
     public TaskEditorViewModel()
     {
-        // ★ 初期化中として TaskItem を作成
         var a = new TaskItem { Title = "親タスク A", IsChild = false };
         var b = new TaskItem { Title = "子タスク B", IsChild = true, PlannedPomodoroCount = 2 };
         var c = new TaskItem { Title = "親タスク C", IsChild = false, PlannedPomodoroCount = 1 };
@@ -22,11 +21,28 @@ public class TaskEditorViewModel
 
         RefreshIndexes();
 
-        // ★ ここで初期化完了（IsChild setter が通常ロジックに戻る）
-        foreach (var t in Tasks)
+        // ★ 初期化完了（setter ガード有効化）
+        a.IsInitializing = false;
+        b.IsInitializing = false;
+        c.IsInitializing = false;
+    }
+
+    // タスク削除
+    public void DeleteTask(TaskItem target)
+    {
+        AppLog.Info("[VM] DeleteTask: Title={0}", target.Title);
+
+        Tasks.Remove(target);
+        RefreshIndexes();
+
+        if (Tasks.Count > 0)
         {
-            t.IsInitializing = false;
-            AppLog.Debug("[TaskEditorVM] Init flag OFF: Title={0}, IsChild={1}, Index={2}", t.Title, t.IsChild, t.Index);
+            var first = Tasks[0];
+            if (first.IsChild)
+            {
+                AppLog.Info("[VM] First task was child → force reset to parent: {0}", first.Title);
+                first.ForceSetIsChild(false);
+            }
         }
     }
 
