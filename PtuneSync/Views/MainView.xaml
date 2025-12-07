@@ -73,7 +73,8 @@
                       Padding="0,8,0,8"
                       IsTabStop="False">
 
-            <views:TaskEditorView/>
+            <views:TaskEditorView  x:Name="TaskEditorHost"
+                      Grid.Row="3" />
         </ScrollViewer>
 
         <!-- ★ Status bar：フッター固定 -->
@@ -86,15 +87,6 @@
             <TextBlock Text="{Binding StatusMessage}"
                        FontSize="13"/>
         </Border>
-
-        <!-- ★ ScrollViewer で TaskEditorView を囲む -->
-        <ScrollViewer Grid.Row="3"
-                      VerticalScrollBarVisibility="Auto"
-                      Margin="0,0,0,0">
-
-            <views:TaskEditorView  x:Name="TaskEditorHost"
-                      Grid.Row="3" />
-        </ScrollViewer>
 
     </Grid>
 </UserControl>
