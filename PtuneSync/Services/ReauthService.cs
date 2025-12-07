@@ -5,30 +5,27 @@ using PtuneSync.Infrastructure;
 using Windows.System;
 
 namespace PtuneSync.Services
-{
+    {
     public class ReauthService
     {
-        public async Task ExecuteAsync()
+        public async Task<ProtocolLauncher.ProtocolLaunchResult> ExecuteAsync()
         {
-            // LocalState/vault_home/.obsidian/plugins/ptune-log/work
-            var workDir = WorkDirInitializer.EnsureWorkDir();
             var vaultHome = AppPaths.VaultHome;
+            var workDir = WorkDirInitializer.EnsureWorkDir();
 
-            var tokenPath = Path.Combine(workDir, "token.json");
-            if (File.Exists(tokenPath))
+            // token.json 削除
+            var token = Path.Combine(workDir, "token.json");
+            if (File.Exists(token))
             {
-                File.Delete(tokenPath);
+                File.Delete(token);
                 AppLog.Debug("[ReauthService] token.json removed");
             }
 
-            // GUI 版 URI は vault_home に LocalState/vault_home を指定
-            var uri = new Uri(
-                $"net.getperf.ptune.googleoauth:/auth?vault_home={Uri.EscapeDataString(vaultHome)}"
-            );
+            var uri = new Uri($"net.getperf.ptune.googleoauth:/auth?vault_home={Uri.EscapeDataString(vaultHome)}");
+            var launcher = new ProtocolLauncher(vaultHome);
 
-            AppLog.Info("[ReauthService] Launch URI: {Uri}", uri);
-
-            await Launcher.LaunchUriAsync(uri);
+            var result = await launcher.LaunchAndWaitAsync(uri, "auth");
+            return result;
         }
     }
 }

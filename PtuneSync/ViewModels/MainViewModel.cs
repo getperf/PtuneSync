@@ -12,14 +12,19 @@ namespace PtuneSync.ViewModels
         private readonly ResetService _resetService;
         private readonly ReauthService _reauthService;
 
-        [ObservableProperty]
-        private string statusMessage = "準備完了";
+        private string _statusMessage = "準備完了";
+
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
+        }
 
         public MainViewModel()
         {
             _exportService = new ExportService();
             _resetService = new ResetService();
-            _reauthService = new ReauthService();   // ← 新規
+            _reauthService = new ReauthService();
         }
 
         [RelayCommand]
@@ -53,9 +58,11 @@ namespace PtuneSync.ViewModels
             StatusMessage = "再認証を開始します…";
             AppLog.Debug("[MainViewModel] ReauthenticateAsync invoked");
 
-            await _reauthService.ExecuteAsync();
+            var result = await _reauthService.ExecuteAsync(); // ← result を返すように修正済み
 
-            StatusMessage = "再認証要求を送信しました";
+            StatusMessage = result.Success
+                ? "再認証が完了しました"
+                : $"再認証に失敗しました: {result.Message}";
         }
 
         [RelayCommand]
