@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using PtuneSync.Infrastructure;
 using PtuneSync.ViewModels;
 
 namespace PtuneSync.Views
@@ -9,6 +10,9 @@ namespace PtuneSync.Views
         public MainView()
         {
             InitializeComponent();
+            AppLog.Debug("[MainView] Constructed");
+            AppLog.Debug("[MainView] TaskEditorHost.DataContext=" + (TaskEditorHost.DataContext?.GetType().Name ?? "null"));
+
             RootGrid.DataContext = new MainViewModel();
             InitializeSettingsMenu();
         }

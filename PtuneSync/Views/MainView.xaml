@@ -65,7 +65,8 @@
                       VerticalScrollBarVisibility="Auto"
                       Margin="0,0,0,0">
 
-            <views:TaskEditorView />
+            <views:TaskEditorView  x:Name="TaskEditorHost"
+                      Grid.Row="3" />
         </ScrollViewer>
 
     </Grid>

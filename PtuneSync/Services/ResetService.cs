@@ -1,4 +1,7 @@
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging;
+using PtuneSync.Infrastructure;
+using PtuneSync.Messages;
 
 namespace PtuneSync.Services
 {
@@ -6,10 +9,11 @@ namespace PtuneSync.Services
     {
         public Task ExecuteAsync()
         {
-            // 将来の実装:
-            // - 作業ディレクトリ削除
-            // - 一時データのクリア
+            AppLog.Debug("[ResetService] ExecuteAsync called: sending ResetTasksMessage");
 
+            WeakReferenceMessenger.Default.Send(new ResetTasksMessage());
+
+            AppLog.Debug("[ResetService] ResetTasksMessage sent");
             return Task.CompletedTask;
         }
     }

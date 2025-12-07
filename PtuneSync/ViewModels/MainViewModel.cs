@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PtuneSync.Infrastructure;
 using PtuneSync.Services;
+using Serilog;
 using System.Threading.Tasks;
 
 namespace PtuneSync.ViewModels
@@ -33,10 +35,16 @@ namespace PtuneSync.ViewModels
         [RelayCommand]
         private async Task ResetAsync()
         {
+            AppLog.Debug("[MainViewModel] ResetAsync invoked");
+
             StatusMessage = "リセット中…";
             await Task.Delay(200);
+
             await _resetService.ExecuteAsync();
-            StatusMessage = "リセット完了（スケルトン）";
+
+            StatusMessage = "タスクをすべてリセットしました";
+
+            AppLog.Debug("[MainViewModel] ResetAsync completed");
         }
 
         [RelayCommand]

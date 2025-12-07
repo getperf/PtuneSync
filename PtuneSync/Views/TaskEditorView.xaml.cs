@@ -17,6 +17,8 @@ public sealed partial class TaskEditorView : UserControl
     public TaskEditorView()
     {
         InitializeComponent();
+        AppLog.Debug("[TaskEditorView] DataContext=" + (this.DataContext?.GetType().Name ?? "null"));
+        AppLog.Debug("[TaskEditorView] Actual DataContext type = " + this.DataContext?.GetType().AssemblyQualifiedName);
     }
 
     // Shift + Enter でタスク追加

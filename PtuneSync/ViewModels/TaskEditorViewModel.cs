@@ -1,15 +1,26 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+
 using System.Collections.ObjectModel;
-using PtuneSync.Models;
 using PtuneSync.Infrastructure;
+using PtuneSync.Messages;
+using PtuneSync.Models;
 
 namespace PtuneSync.ViewModels;
 
-public class TaskEditorViewModel
+// ★ ObservableRecipient を継承
+public partial class TaskEditorViewModel : ObservableRecipient
 {
     public ObservableCollection<TaskItem> Tasks { get; } = new();
 
     public TaskEditorViewModel()
     {
+        AppLog.Debug("[TaskEditorViewModel] Constructor invoked");
+
+        // ★ Messenger 受信用に有効化
+        IsActive = true;
+
+        // 初期データ
         var a = new TaskItem { Title = "親タスク A", IsChild = false };
         var b = new TaskItem { Title = "子タスク B", IsChild = true, PlannedPomodoroCount = 2 };
         var c = new TaskItem { Title = "親タスク C", IsChild = false, PlannedPomodoroCount = 1 };
@@ -23,6 +34,14 @@ public class TaskEditorViewModel
         a.IsInitializing = false;
         b.IsInitializing = false;
         c.IsInitializing = false;
+
+        // ★ Reset メッセージ受信
+        WeakReferenceMessenger.Default.Register<ResetTasksMessage>(this, (r, m) =>
+        {
+            AppLog.Debug("[TaskEditorViewModel] ResetTasksMessage received -> clearing tasks");
+            Tasks.Clear();
+            AppLog.Debug($"[TaskEditorViewModel] Cleared. count={Tasks.Count}");
+        });
     }
 
     // ★ 新規タスク追加（最後のタスクの親子属性を継承）
@@ -74,5 +93,4 @@ public class TaskEditorViewModel
         for (int i = 0; i < Tasks.Count; i++)
             Tasks[i].Index = i;
     }
-
 }
