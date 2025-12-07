@@ -6,67 +6,86 @@
 
     <Grid x:Name="RootGrid"
           Background="{ThemeResource SystemControlAcrylicWindowMediumHighBrush}"
-          Padding="24">
+          Padding="12">
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />  <!-- Header -->
-            <RowDefinition Height="Auto" />  <!-- Commands -->
-            <RowDefinition Height="Auto" />  <!-- Status bar -->
-            <RowDefinition Height="*" />     <!-- Scrollable TaskEditor -->
+            <RowDefinition Height="Auto"/>
+            <!-- Header + Commands 横一列 -->
+            <RowDefinition Height="*"/>
+            <!-- TaskEditor (scrollable) -->
+            <RowDefinition Height="Auto"/>
+            <!-- Status bar fixed -->
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Grid Grid.Row="0">
+        <!-- ★ Header + Commands を 1 行に統合 -->
+        <Grid Grid.Row="0"
+              ColumnSpacing="12"
+              VerticalAlignment="Center">
+
             <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto"/>
+                <!-- Title -->
+                <ColumnDefinition Width="*"/>
+                <!-- Filler -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Commands -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Menu -->
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="PtuneSync"
-                       FontSize="28"
-                       FontWeight="SemiBold" />
+            <!-- Title -->
+            <TextBlock Grid.Column="0"
+                       Text="PtuneSync"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
 
-            <Button Grid.Column="1"
+            <!-- Commands -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        VerticalAlignment="Center">
+
+                <Button Content="エクスポート"
+                        Width="120"
+                        Height="36"
+                        Command="{Binding ExportCommand}"/>
+
+                <Button Content="リセット"
+                        Width="120"
+                        Height="36"
+                        Command="{Binding ResetCommand}"/>
+            </StackPanel>
+
+            <!-- Settings Menu -->
+            <Button Grid.Column="3"
                     Content="⋯"
-                    x:Name="SettingsButton" />
+                    Width="36"
+                    Height="36"
+                    x:Name="SettingsButton"
+                    VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Export / Reset -->
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Spacing="24"
-                    Margin="0,20,0,0">
+        <!-- Scrollable TaskEditor -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="0,8,0,8"
+                      IsTabStop="False">
 
-            <Button Content="エクスポート"
-                    Width="150"
-                    Height="48"
-                    Command="{Binding ExportCommand}" />
+            <views:TaskEditorView/>
+        </ScrollViewer>
 
-            <Button Content="リセット"
-                    Width="150"
-                    Height="48"
-                    Command="{Binding ResetCommand}" />
-        </StackPanel>
-
-        <!-- Status bar -->
+        <!-- ★ Status bar：フッター固定 -->
         <Border Grid.Row="2"
                 Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
                 Padding="8"
                 CornerRadius="4"
-                Margin="0,12,0,12">
+                Margin="0,4,0,0">
 
             <TextBlock Text="{Binding StatusMessage}"
-                       FontSize="14" />
+                       FontSize="13"/>
         </Border>
-
-        <!-- ★ ScrollViewer で TaskEditorView を囲む -->
-        <ScrollViewer Grid.Row="3"
-                      VerticalScrollBarVisibility="Auto"
-                      Margin="0,0,0,0">
-
-            <views:TaskEditorView />
-        </ScrollViewer>
 
     </Grid>
 </UserControl>
