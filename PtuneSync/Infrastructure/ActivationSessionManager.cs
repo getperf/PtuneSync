@@ -13,6 +13,12 @@ public static class ActivationSessionManager
 {
     private static readonly HashSet<string> _pendingOps = new();
 
+    /// <summary>
+    /// GUIモードでは Session End しても Exit しない
+    /// 初期値: false → プロトコル起動の場合のみ Exit
+    /// </summary>
+    public static bool IsGuiMode { get; set; } = false;
+
     public static void Begin(string op)
     {
         _pendingOps.Add(op);
@@ -26,7 +32,13 @@ public static class ActivationSessionManager
 
         if (_pendingOps.Count == 0)
         {
-            AppLog.Info("[Session] All operations complete -> Exit");
+            if (IsGuiMode)
+            {
+                AppLog.Info("[Session] Completed (GUI mode) → stay alive");
+                return;
+            }
+
+            AppLog.Info("[Session] All operations complete → Exit");
             Environment.Exit(0);
         }
     }

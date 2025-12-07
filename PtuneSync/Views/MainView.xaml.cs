@@ -24,8 +24,8 @@ namespace PtuneSync.Views
 
             flyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "サインアウト",
-                Command = vm?.SignOutCommand
+                Text = "再認証",
+                Command = vm?.ReauthenticateCommand
             });
 
             flyout.Items.Add(new MenuFlyoutItem

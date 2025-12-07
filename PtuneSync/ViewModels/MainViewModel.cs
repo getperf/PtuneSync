@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PtuneSync.Infrastructure;
 using PtuneSync.Services;
-using Serilog;
 using System.Threading.Tasks;
 
 namespace PtuneSync.ViewModels
@@ -11,7 +10,7 @@ namespace PtuneSync.ViewModels
     {
         private readonly ExportService _exportService;
         private readonly ResetService _resetService;
-        private readonly AuthService _authService;
+        private readonly ReauthService _reauthService;
 
         [ObservableProperty]
         private string statusMessage = "準備完了";
@@ -20,7 +19,7 @@ namespace PtuneSync.ViewModels
         {
             _exportService = new ExportService();
             _resetService = new ResetService();
-            _authService = new AuthService();
+            _reauthService = new ReauthService();   // ← 新規
         }
 
         [RelayCommand]
@@ -47,13 +46,16 @@ namespace PtuneSync.ViewModels
             AppLog.Debug("[MainViewModel] ResetAsync completed");
         }
 
+        // ★★★ ReAuth コマンド（旧 SignOut コマンド置き換え）
         [RelayCommand]
-        private async Task SignOutAsync()
+        private async Task ReauthenticateAsync()
         {
-            StatusMessage = "サインアウト中…";
-            await Task.Delay(200);
-            await _authService.SignOutAsync();
-            StatusMessage = "サインアウト完了";
+            StatusMessage = "再認証を開始します…";
+            AppLog.Debug("[MainViewModel] ReauthenticateAsync invoked");
+
+            await _reauthService.ExecuteAsync();
+
+            StatusMessage = "再認証要求を送信しました";
         }
 
         [RelayCommand]
