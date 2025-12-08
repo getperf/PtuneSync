@@ -1,4 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using System.IO;
+using System.Reflection;
 
 namespace PtuneSync
 {
@@ -10,8 +14,20 @@ namespace PtuneSync
         {
             ActivationSessionManager.IsGuiMode = true;
 
-            this.InitializeComponent();
-            this.AppWindow.Resize(new Windows.Graphics.SizeInt32(900, 600));
+            InitializeComponent();
+
+            this.Title = "PtuneSync";
+
+            var appWindow = this.AppWindow;
+            if (appWindow != null)
+            {
+                appWindow.Resize(new SizeInt32(900, 600));
+
+                // ★ アイコン設定
+                var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+                var iconPath = Path.Combine(exeDir, "Assets", "Icon.ico");
+                appWindow.SetIcon(iconPath);
+            }
 
             Current = this;
         }
