@@ -12,6 +12,7 @@ namespace PtuneSync.ViewModels
         private readonly ExportService _exportService;
         private readonly ResetService _resetService;
         private readonly ReauthService _reauthService;
+        private readonly SystemOpenerService _opener;
 
         public TaskEditorViewModel Editor { get; } = new TaskEditorViewModel();
 
@@ -28,6 +29,7 @@ namespace PtuneSync.ViewModels
             _exportService = new ExportService();
             _resetService = new ResetService();
             _reauthService = new ReauthService();
+            _opener = new SystemOpenerService();
         }
 
         // ★ Export コマンドで Editor.Tasks を利用
@@ -71,9 +73,15 @@ namespace PtuneSync.ViewModels
         }
 
         [RelayCommand]
-        private void OpenLogFolder()
+        private async Task OpenLogFolder()
         {
-            StatusMessage = "ログフォルダを開く（スケルトン）";
+            StatusMessage = "ログフォルダを開いています…";
+
+            bool ok = await _opener.OpenLogFolderAsync();
+
+            StatusMessage = ok
+                ? "ログフォルダを開きました"
+                : "ログフォルダを開けませんでした";
         }
 
         [RelayCommand]

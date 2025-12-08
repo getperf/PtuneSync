@@ -17,23 +17,23 @@ public partial class TaskEditorViewModel : ObservableRecipient
     {
         AppLog.Debug("[TaskEditorViewModel] Constructor invoked");
 
-        // ★ Messenger 受信用に有効化
+        // Messenger 受信用に有効化
         IsActive = true;
 
         // 初期データ
-        var a = new TaskItem { Title = "親タスク A", IsChild = false };
-        var b = new TaskItem { Title = "子タスク B", IsChild = true, PlannedPomodoroCount = 2 };
-        var c = new TaskItem { Title = "親タスク C", IsChild = false, PlannedPomodoroCount = 1 };
+        // var a = new TaskItem { Title = "親タスク A", IsChild = false };
+        // var b = new TaskItem { Title = "子タスク B", IsChild = true, PlannedPomodoroCount = 2 };
+        // var c = new TaskItem { Title = "親タスク C", IsChild = false, PlannedPomodoroCount = 1 };
 
-        Tasks.Add(a);
-        Tasks.Add(b);
-        Tasks.Add(c);
+        // Tasks.Add(a);
+        // Tasks.Add(b);
+        // Tasks.Add(c);
 
-        RefreshIndexes();
+        // RefreshIndexes();
 
-        a.IsInitializing = false;
-        b.IsInitializing = false;
-        c.IsInitializing = false;
+        // a.IsInitializing = false;
+        // b.IsInitializing = false;
+        // c.IsInitializing = false;
 
         // ★ Reset メッセージ受信
         WeakReferenceMessenger.Default.Register<ResetTasksMessage>(this, (r, m) =>

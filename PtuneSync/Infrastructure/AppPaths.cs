@@ -13,6 +13,9 @@ namespace PtuneSync.Infrastructure
         public static string LocalStateRoot =>
             ApplicationData.Current.LocalFolder.Path;
 
+        public static string Logs =>
+            Path.Combine(LocalStateRoot, "logs");
+
         /// <summary>
         /// Obsidian 互換の vault_home に相当する場所を LocalState 下に定義する
         /// （GUI 版では LocalState を vault_home と扱う）
