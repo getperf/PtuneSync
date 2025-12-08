@@ -1,22 +1,34 @@
+// File: Infrastructure/WorkDirInitializer.cs
+using System;
 using System.IO;
-using PtuneSync.Infrastructure;
 
-namespace PtuneSync.Services
+namespace PtuneSync.Infrastructure;
+
+public static class WorkDirInitializer
 {
-    public static class WorkDirInitializer
+    public static string EnsureWorkDir()
     {
-        public static string EnsureWorkDir()
-        {
-            // vault_home = LocalState/vault_home/
-            var vaultHome = AppPaths.EnsureDirectory(AppPaths.VaultHome);
+        var vaultHome = AppPaths.VaultHome;
+        var workDir = Path.Combine(
+            vaultHome,
+            ".obsidian", "plugins", "ptune-log", "work"
+        );
 
-            // LocalState/vault_home/.obsidian/plugins/ptune-log/work
-            var work = AppPaths.WorkDir(vaultHome);
-            Directory.CreateDirectory(work);
+        if (!Directory.Exists(workDir))
+            Directory.CreateDirectory(workDir);
 
-            AppLog.Debug("[WorkDirInitializer] workDir=" + work);
+        AppLog.Debug("[WorkDirInitializer] workDir={0}", workDir);
+        return workDir;
+    }
 
-            return work;
-        }
+    public static string WriteMarkdown(string markdown)
+    {
+        var workDir = EnsureWorkDir();
+        var path = Path.Combine(workDir, "tasks.md");
+
+        File.WriteAllText(path, markdown);
+        AppLog.Info("[WorkDirInitializer] Markdown saved: {0}", path);
+
+        return path;
     }
 }

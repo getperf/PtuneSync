@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PtuneSync.Infrastructure;
 using PtuneSync.Services;
 using System.Threading.Tasks;
+using PtuneSync.ViewModels;
 
 namespace PtuneSync.ViewModels
 {
@@ -11,6 +12,8 @@ namespace PtuneSync.ViewModels
         private readonly ExportService _exportService;
         private readonly ResetService _resetService;
         private readonly ReauthService _reauthService;
+
+        public TaskEditorViewModel Editor { get; } = new TaskEditorViewModel();
 
         private string _statusMessage = "準備完了";
 
@@ -27,13 +30,17 @@ namespace PtuneSync.ViewModels
             _reauthService = new ReauthService();
         }
 
+        // ★ Export コマンドで Editor.Tasks を利用
         [RelayCommand]
         private async Task ExportAsync()
         {
-            StatusMessage = "エクスポート中…";
-            await Task.Delay(200);
-            await _exportService.ExecuteAsync();
-            StatusMessage = "エクスポート完了（スケルトン）";
+            StatusMessage = "エクスポート準備中…";
+
+            await Task.Delay(100);
+
+            bool ok = await _exportService.ExecuteAsync(Editor.Tasks);
+
+            StatusMessage = ok ? "Markdown を保存しました" : "エクスポート失敗";
         }
 
         [RelayCommand]
@@ -45,20 +52,18 @@ namespace PtuneSync.ViewModels
             await Task.Delay(200);
 
             await _resetService.ExecuteAsync();
-
             StatusMessage = "タスクをすべてリセットしました";
 
             AppLog.Debug("[MainViewModel] ResetAsync completed");
         }
 
-        // ★★★ ReAuth コマンド（旧 SignOut コマンド置き換え）
         [RelayCommand]
         private async Task ReauthenticateAsync()
         {
             StatusMessage = "再認証を開始します…";
             AppLog.Debug("[MainViewModel] ReauthenticateAsync invoked");
 
-            var result = await _reauthService.ExecuteAsync(); // ← result を返すように修正済み
+            var result = await _reauthService.ExecuteAsync();
 
             StatusMessage = result.Success
                 ? "再認証が完了しました"
