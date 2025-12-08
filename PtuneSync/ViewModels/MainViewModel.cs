@@ -77,9 +77,20 @@ namespace PtuneSync.ViewModels
         }
 
         [RelayCommand]
-        private void ShowVersion()
+        private async Task ShowVersion()
         {
-            StatusMessage = "PtuneSync v1.0.0（スケルトン）";
+            var version = VersionService.GetAppVersion();
+
+            var msg =
+                $"PtuneSync GUI バージョン\n" +
+                $"--------------------------------\n" +
+                $"Version : {version}\n" +
+                $"Build    : GUI / WinUI3\n" +
+                $"--------------------------------";
+
+            await new UserDialogService().ShowMessageAsync(msg, "バージョン情報");
+
+            StatusMessage = $"PtuneSync v{version}";
         }
     }
 }
