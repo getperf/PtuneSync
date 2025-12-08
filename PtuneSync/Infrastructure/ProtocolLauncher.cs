@@ -7,8 +7,12 @@ using PtuneSync.Infrastructure;
 public class ProtocolLauncher
 {
     private readonly string _statusFile;
+
     private readonly TimeSpan _startRetryInterval = TimeSpan.FromSeconds(1);
     private readonly int _startRetryMax = 4;
+
+    private readonly TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
+    private readonly TimeSpan _completionPolling = TimeSpan.FromMilliseconds(800);
 
     public ProtocolLauncher(string vaultHome)
     {
@@ -18,18 +22,18 @@ public class ProtocolLauncher
         );
     }
 
-    // -----------------------------
-    // 結果を返すための DTO
-    // -----------------------------
+    // ----------------------------------------
+    // DTO
+    // ----------------------------------------
     public class ProtocolLaunchResult
     {
         public bool Success { get; set; }
         public string Message { get; set; } = "";
     }
 
-    // -----------------------------
+    // ----------------------------------------
     // メイン処理
-    // -----------------------------
+    // ----------------------------------------
     public async Task<ProtocolLaunchResult> LaunchAndWaitAsync(Uri uri, string op)
     {
         var baseline = DateTime.Now;
@@ -51,9 +55,9 @@ public class ProtocolLauncher
         return await WaitForCompletion(op, baseline);
     }
 
-    // -----------------------------
+    // ----------------------------------------
     // 起動検出
-    // -----------------------------
+    // ----------------------------------------
     private async Task<bool> WaitForStart(Uri uri, DateTime baseline)
     {
         for (int attempt = 1; attempt <= _startRetryMax; attempt++)
@@ -90,14 +94,16 @@ public class ProtocolLauncher
         }
     }
 
-    // -----------------------------
-    // 完了検出（成功/失敗 + メッセージ付き）
-    // -----------------------------
+    // ----------------------------------------
+    // 完了検出
+    // ----------------------------------------
     private async Task<ProtocolLaunchResult> WaitForCompletion(string op, DateTime baseline)
     {
         AppLog.Debug("[ProtocolLauncher] WaitForCompletion start");
 
-        while (true)
+        var timeoutAt = DateTime.Now + _completionTimeout;
+
+        while (DateTime.Now < timeoutAt)
         {
             if (IsStatusFileUpdated(baseline))
             {
@@ -106,8 +112,15 @@ public class ProtocolLauncher
                     var json = await File.ReadAllTextAsync(_statusFile);
                     var status = JsonSerializer.Deserialize<StatusFile>(json);
 
-                    if (status != null && status.operation == op)
+                    if (status != null)
                     {
+                        // operation 不一致はスキップ
+                        if (status.operation != op)
+                        {
+                            AppLog.Debug("[ProtocolLauncher] operation mismatch: {0}", status.operation);
+                            goto CONTINUE;
+                        }
+
                         AppLog.Info("[ProtocolLauncher] status={0}, msg={1}",
                             status.status, status.message ?? "");
 
@@ -119,6 +132,7 @@ public class ProtocolLauncher
                                 Message = status.message ?? "OK"
                             };
                         }
+
                         if (status.status == "error")
                         {
                             return new ProtocolLaunchResult
@@ -131,12 +145,20 @@ public class ProtocolLauncher
                 }
                 catch (Exception ex)
                 {
-                    AppLog.Error(ex, "[ProtocolLauncher] Failed to read status.json");
+                    AppLog.Error(ex, "[ProtocolLauncher] read status.json failed");
                 }
             }
 
-            await Task.Delay(800);
+        CONTINUE:
+            await Task.Delay(_completionPolling);
         }
+
+        // タイムアウト
+        return new ProtocolLaunchResult
+        {
+            Success = false,
+            Message = "処理がタイムアウトしました"
+        };
     }
 
     private record StatusFile(string status, string operation, string? message);

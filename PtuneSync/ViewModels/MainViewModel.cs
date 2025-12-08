@@ -34,13 +34,13 @@ namespace PtuneSync.ViewModels
         [RelayCommand]
         private async Task ExportAsync()
         {
-            StatusMessage = "エクスポート準備中…";
+            StatusMessage = "エクスポート中…";
 
-            await Task.Delay(100);
+            var result = await _exportService.ExecuteAsync(Editor.Tasks);
 
-            bool ok = await _exportService.ExecuteAsync(Editor.Tasks);
-
-            StatusMessage = ok ? "Markdown を保存しました" : "エクスポート失敗";
+            StatusMessage = result.Success
+                ? "エクスポート完了"
+                : $"失敗: {result.Message}";
         }
 
         [RelayCommand]
