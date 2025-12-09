@@ -14,34 +14,34 @@ public class TasksReset
         _api = api;
         _taskListName = taskListName;
     }
-public async Task RunAsync()
-{
-    AppLog.Debug("[TasksReset] start list={0}", _taskListName);
-
-    var list = await _api.EnsureTaskListAsync(_taskListName);
-    var listId = list.Id!;
-    var tasks = await _api.ListTasksAsync(listId);
-
-    AppLog.Info("[TasksReset] existing count={0}", tasks.Count);
-    foreach (var t in tasks)
+    public async Task RunAsync()
     {
-        await _api.DeleteTaskAsync(t.Id!, listId);
-        AppLog.Debug("[TasksReset] deleted: {0} ({1})", t.Title, t.Id);
-    }
+        AppLog.Debug("[TasksReset] start list={0}", _taskListName);
 
-    // 削除反映待ち（最大5回）
-    for (int i = 0; i < 5; i++)
-    {
-        await Task.Delay(1000);
-        var remain = await _api.ListTasksAsync(listId);
-        if (remain.Count == 0)
+        var list = await _api.EnsureTaskListAsync(_taskListName);
+        var listId = list.Id!;
+        var tasks = await _api.ListTasksAsync(listId);
+
+        AppLog.Info("[TasksReset] existing count={0}", tasks.Count);
+        foreach (var t in tasks)
         {
-            AppLog.Info("[TasksReset] confirmed empty");
-            return;
+            await _api.DeleteTaskAsync(t.Id!, listId);
+            AppLog.Debug("[TasksReset] deleted: {0} ({1})", t.Title, t.Id);
         }
-        AppLog.Debug("[TasksReset] waiting delete propagation... remain={0}", remain.Count);
-    }
 
-    AppLog.Warn("[TasksReset] timeout waiting for delete propagation");
-}
+        // 削除反映待ち（最大5回）
+        for (int i = 0; i < 5; i++)
+        {
+            await Task.Delay(1000);
+            var remain = await _api.ListTasksAsync(listId);
+            if (remain.Count == 0)
+            {
+                AppLog.Info("[TasksReset] confirmed empty");
+                return;
+            }
+            AppLog.Debug("[TasksReset] waiting delete propagation... remain={0}", remain.Count);
+        }
+
+        AppLog.Warn("[TasksReset] timeout waiting for delete propagation");
+    }
 }

@@ -1,18 +1,35 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using System.IO;
+using System.Reflection;
 
-namespace PtuneSync;
-
-public sealed partial class MainWindow : Window
+namespace PtuneSync
 {
-    public MainWindow()
+    public sealed partial class MainWindow : Window
     {
-        InitializeComponent();
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(640, 480)); 
-    }
+        public static new MainWindow Current { get; private set; } = null!;
 
-    private void OnCloseClicked(object sender, RoutedEventArgs e)
-    {
-        Close();
+        public MainWindow()
+        {
+            ActivationSessionManager.IsGuiMode = true;
+
+            InitializeComponent();
+
+            this.Title = "PtuneSync";
+
+            var appWindow = this.AppWindow;
+            if (appWindow != null)
+            {
+                appWindow.Resize(new SizeInt32(900, 600));
+
+                // ★ アイコン設定
+                var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+                var iconPath = Path.Combine(exeDir, "Assets", "Icon.ico");
+                appWindow.SetIcon(iconPath);
+            }
+
+            Current = this;
+        }
     }
 }
