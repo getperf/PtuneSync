@@ -7,6 +7,8 @@ public static class SessionNames
     public const string Auth = "auth";
     public const string Import = "import";
     public const string Export = "export";
+
+    public const string GetTasksMarkdown = "get-tasks-md";
 }
 
 public static class ActivationSessionManager
