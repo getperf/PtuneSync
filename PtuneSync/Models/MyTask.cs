@@ -30,6 +30,9 @@ public class MyTask
     [JsonPropertyName("pomodoro")]
     public PomodoroInfo? Pomodoro { get; set; }
 
+    [JsonPropertyName("reviewFlags")]
+    public List<ReviewFlag> ReviewFlags { get; set; } = new();
+
     [JsonPropertyName("status")]
     public string Status { get; set; } = "needsAction"; // or "completed"
 

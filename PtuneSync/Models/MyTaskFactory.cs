@@ -15,6 +15,7 @@ public static class MyTaskFactory
         string? GetOpt(string key) => task.ContainsKey(key) ? task[key]?.ToString() : null;
 
         var notes = GetOpt("notes");
+        var reviewFlags = ReviewFlagNotesDecoder.Decode(notes);
         var pomodoro = ParsePomodoroInfo(notes);
         var started = ExtractTimestamp("started", notes);
         var completedNote = ExtractTimestamp("completed", notes);
@@ -30,6 +31,7 @@ public static class MyTaskFactory
         {
             TaskListId = taskListId,
             Note = ExtractNoteBody(notes),
+            ReviewFlags = reviewFlags,
             Parent = GetOpt("parent"),
             Position = GetOpt("position"),
             Due = due,
