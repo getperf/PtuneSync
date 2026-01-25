@@ -6,13 +6,19 @@ namespace PtuneSync.Models;
 
 public static class ReviewFlagNotesEncoder
 {
-    private const string Prefix = "#ptune:review=";
-
-    public static string? Encode(IEnumerable<ReviewFlag> flags)
+    /// <summary>
+    /// reviewFlags → "#ptune:review=flag1,flag2"
+    /// 空の場合は null
+    /// </summary>
+    public static string? Encode(IEnumerable<string> flags)
     {
-        var list = flags?.ToList() ?? new();
-        return list.Count == 0
-            ? null
-            : Prefix + string.Join(",", list.Select(f => f.ToString()));
+        if (flags is null) return null;
+
+        var uniq = new HashSet<string>(flags.Where(s => !string.IsNullOrWhiteSpace(s))
+                                            .Select(s => s.Trim()));
+
+        if (uniq.Count == 0) return null;
+
+        return $"#ptune:review={string.Join(",", uniq)}";
     }
 }

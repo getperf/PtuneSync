@@ -31,8 +31,8 @@ public class MyTask
     public PomodoroInfo? Pomodoro { get; set; }
 
     [JsonPropertyName("reviewFlags")]
-    public List<ReviewFlag> ReviewFlags { get; set; } = new();
-
+    public HashSet<string>? ReviewFlags { get; set; }
+    
     [JsonPropertyName("status")]
     public string Status { get; set; } = "needsAction"; // or "completed"
 

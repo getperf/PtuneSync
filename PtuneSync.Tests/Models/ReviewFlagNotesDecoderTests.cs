@@ -1,5 +1,4 @@
-// PtuneSync.Tests/ReviewFlagNotesDecoderTests.cs
-using System.Linq;
+// PtuneSync.Tests/Models/ReviewFlagNotesDecoderTests.cs
 using PtuneSync.Models;
 using Xunit;
 
@@ -8,25 +7,21 @@ namespace PtuneSync.Tests.Models;
 public class ReviewFlagNotesDecoderTests
 {
     [Fact]
-    public void Decode_ValidFlags()
+    public void Decode_FindsFlags()
     {
-        var notes = "#ptune:review=stuckUnknown,unresolved";
-
+        var notes = "aaa\n#ptune:review=stuckUnknown,unresolved\nbbb";
         var flags = ReviewFlagNotesDecoder.Decode(notes);
 
-        Assert.Equal(2, flags.Count);
-        Assert.Contains(ReviewFlag.stuckUnknown, flags);
-        Assert.Contains(ReviewFlag.unresolved, flags);
+        Assert.Contains(ReviewFlagKeys.stuckUnknown, flags);
+        Assert.Contains(ReviewFlagKeys.unresolved, flags);
     }
 
     [Fact]
-    public void Decode_IgnoreUnknownFlag()
+    public void Decode_NoMarker_ReturnsEmpty()
     {
-        var notes = "#ptune:review=stuckUnknown,unknownFlag,unresolved";
-
+        var notes = "no review here";
         var flags = ReviewFlagNotesDecoder.Decode(notes);
 
-        Assert.Equal(2, flags.Count);
-        Assert.DoesNotContain(flags, f => f.ToString() == "unknownFlag");
+        Assert.Empty(flags);
     }
 }

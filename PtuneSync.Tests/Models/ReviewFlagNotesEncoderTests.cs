@@ -1,5 +1,4 @@
-// PtuneSync.Tests/ReviewFlagNotesEncoderTests.cs
-using System.Collections.Generic;
+// PtuneSync.Tests/Models/ReviewFlagNotesEncoderTests.cs
 using PtuneSync.Models;
 using Xunit;
 
@@ -10,24 +9,24 @@ public class ReviewFlagNotesEncoderTests
     [Fact]
     public void Encode_Empty_ReturnsNull()
     {
-        var result = ReviewFlagNotesEncoder.Encode(new List<ReviewFlag>());
-
+        var result = ReviewFlagNotesEncoder.Encode(Array.Empty<string>());
         Assert.Null(result);
     }
 
     [Fact]
-    public void EncodeDecode_RoundTrip()
+    public void Encode_RoundTrip()
     {
-        var original = new[]
+        var original = new List<string>
         {
-            ReviewFlag.decisionPending,
-            ReviewFlag.scopeExpanded
+            ReviewFlagKeys.decisionPending,
+            ReviewFlagKeys.scopeExpanded
         };
 
         var encoded = ReviewFlagNotesEncoder.Encode(original);
         var decoded = ReviewFlagNotesDecoder.Decode(encoded);
 
-        Assert.Equal(original.Length, decoded.Count);
-        Assert.Equal(original, decoded);
+        Assert.NotNull(encoded);
+        Assert.Contains(ReviewFlagKeys.decisionPending, decoded);
+        Assert.Contains(ReviewFlagKeys.scopeExpanded, decoded);
     }
 }

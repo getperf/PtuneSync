@@ -16,6 +16,7 @@ public static class MyTaskFactory
 
         var notes = GetOpt("notes");
         var reviewFlags = ReviewFlagNotesDecoder.Decode(notes);
+
         var pomodoro = ParsePomodoroInfo(notes);
         var started = ExtractTimestamp("started", notes);
         var completedNote = ExtractTimestamp("completed", notes);
@@ -31,7 +32,7 @@ public static class MyTaskFactory
         {
             TaskListId = taskListId,
             Note = ExtractNoteBody(notes),
-            ReviewFlags = reviewFlags,
+            ReviewFlags = reviewFlags.Count > 0 ? reviewFlags : null,
             Parent = GetOpt("parent"),
             Position = GetOpt("position"),
             Due = due,

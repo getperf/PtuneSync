@@ -22,7 +22,7 @@ public class MyTaskFactoryReviewFlagTests
 
         Assert.NotNull(task.ReviewFlags);
         Assert.Equal(2, task.ReviewFlags.Count);
-        Assert.Contains(ReviewFlag.stuckUnknown, task.ReviewFlags);
-        Assert.Contains(ReviewFlag.unresolved, task.ReviewFlags);
+        Assert.Contains("stuckUnknown", task.ReviewFlags);
+        Assert.Contains("unresolved", task.ReviewFlags);
     }
 }

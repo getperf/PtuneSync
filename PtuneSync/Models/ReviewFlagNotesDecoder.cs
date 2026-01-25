@@ -7,22 +7,28 @@ namespace PtuneSync.Models;
 
 public static class ReviewFlagNotesDecoder
 {
-    private static readonly Regex Pattern =
-        new(@"#ptune:review=([^\s]+)", RegexOptions.Compiled);
+    private static readonly Regex Pattern = new(@"#ptune:review=([^\s]+)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    public static List<ReviewFlag> Decode(string? notes)
+    /// <summary>
+    /// notes → reviewFlags（集合）
+    /// - 未知フラグも落とさない（PtuneSync は変換・搬送が責務）
+    /// </summary>
+    public static HashSet<string> Decode(string? notes)
     {
-        var result = new List<ReviewFlag>();
+        var result = new HashSet<string>();
         if (string.IsNullOrWhiteSpace(notes)) return result;
 
-        var match = Pattern.Match(notes);
-        if (!match.Success) return result;
+        var m = Pattern.Match(notes);
+        if (!m.Success) return result;
 
-        foreach (var raw in match.Groups[1].Value.Split(','))
+        var raw = m.Groups[1].Value;
+        foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
-            if (Enum.TryParse<ReviewFlag>(raw, out var flag))
-                result.Add(flag);
+            var s = part.Trim();
+            if (s.Length > 0) result.Add(s);
         }
+
         return result;
     }
 }
