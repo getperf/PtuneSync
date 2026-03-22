@@ -1,0 +1,10 @@
+{
+	"id": "ptune-task",
+	"name": "ptune-task",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Work-log management plugin for organizing notes, summaries, and daily retrospectives.",
+	"author": "Minoru Furusawa",
+	"authorUrl": "https://ptune.getperf.net/",
+	"isDesktopOnly": true
+}

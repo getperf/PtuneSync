@@ -1,0 +1,2 @@
+[console_scripts]
+ptune-sync = ptune_sync.cli.main:app

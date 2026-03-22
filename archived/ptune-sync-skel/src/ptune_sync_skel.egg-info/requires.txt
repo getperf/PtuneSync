@@ -1,0 +1,10 @@
+httpx
+pydantic
+typer
+python-dotenv
+requests>=2.32.5
+platformdirs>=4.9.2
+jsonschema>=4.26.0
+
+[dev]
+pytest

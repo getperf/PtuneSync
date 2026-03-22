@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "useUnknownInCatchVariables": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "lib": ["DOM", "ES2020"]
+  },
+
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "tests/**/*.ts"
+  ]
+}

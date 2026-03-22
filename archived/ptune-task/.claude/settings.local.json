@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/home/pkm/skel/obsidian/ptune-task\" && npm run build 2>&1 | tail -30)",
+      "Bash(cd \"C:/home/pkm/skel/obsidian/ptune-task\" && npm run build 2>&1)",
+      "Bash(find \"C:/home/pkm/skel/obsidian/ptune-task/src\" -name \"*.ts\" | xargs grep -l \"from.*Logger\\\\|import.*Logger\" 2>/dev/null | head -30)",
+      "Bash(cd \"C:/home/pkm/skel/obsidian/ptune-task\" && echo \"=== 残存 Logger.get\\(\\) ===\" && grep -rn \"Logger\\\\.get\\(\\)\" src/ --include=\"*.ts\" && echo \"=== 残存 import { Logger } \\(loggerInstance以外\\) ===\" && grep -rn \"import { Logger }\" src/ --include=\"*.ts\" | grep -v loggerInstance && npm run build 2>&1)",
+      "Bash(cd \"C:/home/pkm/skel/obsidian/ptune-task\" && grep -rn \"Logger\\\\.get\\(\\)\" src/ --include=\"*.ts\"; grep -rn \"import { Logger }\" src/ --include=\"*.ts\" | grep -v loggerInstance; npm run build 2>&1)",
+      "Bash(find \"C:/home/pkm/skel/obsidian/ptune-task/src/shared/i18n\" -name \"*.ts\" 2>/dev/null && grep -rn \"import.*I18n\\\\b\" \"C:/home/pkm/skel/obsidian/ptune-task/src\" --include=\"*.ts\" | grep -v \"shared/i18n\")",
+      "Bash(cd \"C:/home/pkm/skel/obsidian/ptune-task\" && sed -i '/^import { i18n } from \".*shared\\\\/i18n\\\\/I18n\";$/d' src/infrastructure/document/adapter/DailyNoteDocumentAdapter.ts src/infrastructure/document/review/ReviewDocumentRenderer.ts src/infrastructure/document/review/ReviewSectionWriter.ts)"
+    ]
+  }
+}

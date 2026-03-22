@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: ptune-sync-skel
+Version: 0.1.0
+Summary: PtuneSync verification skeleton (Google Tasks + Markdown sync)
+Author: Ptune Project
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: httpx
+Requires-Dist: pydantic
+Requires-Dist: typer
+Requires-Dist: python-dotenv
+Requires-Dist: requests>=2.32.5
+Requires-Dist: platformdirs>=4.9.2
+Requires-Dist: jsonschema>=4.26.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
