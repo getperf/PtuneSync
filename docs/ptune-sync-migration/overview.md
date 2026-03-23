@@ -18,6 +18,10 @@ They are intentionally stored outside archived project copies so that:
   - target run contract for URI-based WinUI execution
   - covers `request_id`, `request.json`, `status.json`, run directories,
     startup retry, dispatcher idempotency, and cleanup direction
+- `contract-finalization.md`
+  - concrete decision draft for Phase 1 contract finalization
+  - fixes the first proposal for request/status fields, request identity,
+    lifecycle values, retry rules, and cleanup rules
 - `protocol-dispatcher.md`
   - WinUI-side activation, idempotency, and dispatch responsibilities
 - `request-status-schema.md`
@@ -33,11 +37,12 @@ They are intentionally stored outside archived project copies so that:
 ## Recommended Reading Order
 
 1. `winui-uri-run-contract.md`
-2. `protocol-dispatcher.md`
-3. `request-status-schema.md`
-4. `startup-retry-policy.md`
-5. `cleanup-policy.md`
-6. `implementation-task-list.md`
+2. `contract-finalization.md`
+3. `protocol-dispatcher.md`
+4. `request-status-schema.md`
+5. `startup-retry-policy.md`
+6. `cleanup-policy.md`
+7. `implementation-task-list.md`
 
 ## Scope
 
