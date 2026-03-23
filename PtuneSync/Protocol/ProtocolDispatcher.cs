@@ -13,7 +13,8 @@ public static class ProtocolDispatcher
         { "export", new Handlers.ExportHandler() },
         { "import", new Handlers.ImportHandler() },
         { "get-tasks-md", new Handlers.GetTasksMarkdownHandler() },
-        { "auth",   new Handlers.AuthHandler() }
+        { "auth", new Handlers.AuthHandler() },
+        { "run/auth/status", new Handlers.RunAuthStatusHandler() },
     };
 
     public static async Task Dispatch(Uri uri)

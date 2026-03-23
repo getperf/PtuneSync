@@ -1,6 +1,5 @@
-﻿// File: PtuneSync/App.xaml.cs
+// File: PtuneSync/App.xaml.cs
 using System;
-using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using PtuneSync.Infrastructure;
@@ -31,22 +30,27 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
+        var launchMode = LaunchModeService.GetLaunchMode(activation);
 
-        if (LaunchModeService.GetLaunchMode(activation) == LaunchMode.Protocol)
+        AppLog.Info("[App] OnLaunched mode={LaunchMode}", launchMode);
+
+        if (launchMode == LaunchMode.Protocol)
         {
-            AppLog.Info("[App] Protocol launch → skip UI");
+            AppLog.Info("[App] Protocol launch -> handle activation and skip UI");
+            AppLaunchController.HandleActivation(activation);
             return;
         }
 
-        AppLog.Info("[App] Normal launch → show UI");
-
-        var window = new MainWindow();
-        window.Activate();
+        AppLog.Info("[App] Normal launch -> show UI");
+        AppLaunchController.HandleLaunch(args);
     }
 
     private void OnAppActivated(object? sender, AppActivationArguments args)
     {
-        if (LaunchModeService.GetLaunchMode(args) == LaunchMode.Protocol)
+        var launchMode = LaunchModeService.GetLaunchMode(args);
+        AppLog.Info("[App] OnAppActivated mode={LaunchMode}", launchMode);
+
+        if (launchMode == LaunchMode.Protocol)
             AppLaunchController.HandleActivation(args);
     }
 }
