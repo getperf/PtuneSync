@@ -15,6 +15,7 @@ public static class ProtocolDispatcher
         { "get-tasks-md", new Handlers.GetTasksMarkdownHandler() },
         { "auth", new Handlers.AuthHandler() },
         { "run/auth/status", new Handlers.RunAuthStatusHandler() },
+        { "run/auth/login", new Handlers.RunAuthLoginHandler() },
     };
 
     public static async Task Dispatch(Uri uri)
