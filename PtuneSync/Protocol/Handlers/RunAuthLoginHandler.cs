@@ -61,6 +61,9 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
                 message: "browser login started");
 
             var config = AppConfigManager.Config.GoogleOAuth;
+            var storage = new TokenStorage(tokenWorkDir);
+            storage.Delete();
+
             var manager = new OAuthManager(config, tokenWorkDir);
             var token = await manager.GetOrRefreshAsync();
             var authenticated = token.ExpiresAt > DateTime.Now;

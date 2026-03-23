@@ -27,17 +27,15 @@ public partial class App : Application
         AppInstance.GetCurrent().Activated += OnAppActivated;
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
-        var launchMode = LaunchModeService.GetLaunchMode(activation);
+        var handledActivation = await AppLaunchController.HandleActivation(activation);
+        AppLog.Info("[App] OnLaunched handledActivation={HandledActivation}", handledActivation);
 
-        AppLog.Info("[App] OnLaunched mode={LaunchMode}", launchMode);
-
-        if (launchMode == LaunchMode.Protocol)
+        if (handledActivation)
         {
             AppLog.Info("[App] Protocol launch -> handle activation and skip UI");
-            AppLaunchController.HandleActivation(activation);
             return;
         }
 
@@ -45,12 +43,16 @@ public partial class App : Application
         AppLaunchController.HandleLaunch(args);
     }
 
-    private void OnAppActivated(object? sender, AppActivationArguments args)
+    private async void OnAppActivated(object? sender, AppActivationArguments args)
     {
-        var launchMode = LaunchModeService.GetLaunchMode(args);
-        AppLog.Info("[App] OnAppActivated mode={LaunchMode}", launchMode);
+        var handledActivation = await AppLaunchController.HandleActivation(args);
+        if (!handledActivation)
+        {
+            AppLog.Warn("[App] OnAppActivated retrying with current AppInstance activation args");
+            var currentArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+            handledActivation = await AppLaunchController.HandleActivation(currentArgs);
+        }
 
-        if (launchMode == LaunchMode.Protocol)
-            AppLaunchController.HandleActivation(args);
+        AppLog.Info("[App] OnAppActivated handledActivation={HandledActivation}", handledActivation);
     }
 }

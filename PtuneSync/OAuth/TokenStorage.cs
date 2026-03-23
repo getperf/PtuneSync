@@ -40,4 +40,16 @@ public class TokenStorage
         AppLog.Debug("[TokenStorage] ExpiresAt={0}", token?.ExpiresAt.ToString() ?? "unkown");
         return token;
     }
+
+    public void Delete()
+    {
+        if (!File.Exists(_path))
+        {
+            AppLog.Debug("[TokenStorage] Delete skipped; token.json not found: {0}", _path);
+            return;
+        }
+
+        File.Delete(_path);
+        AppLog.Info("[TokenStorage] Deleted token.json -> {0}", _path);
+    }
 }
