@@ -80,7 +80,6 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
                     auth = new
                     {
                         authenticated,
-                        email = (string?)null,
                         expires_at = token.ExpiresAt.ToString("O"),
                     }
                 });

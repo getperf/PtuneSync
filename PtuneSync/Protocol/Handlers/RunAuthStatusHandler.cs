@@ -68,7 +68,6 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
                     auth = new
                     {
                         authenticated,
-                        email = (string?)null,
                         expires_at = token?.ExpiresAt.ToString("O"),
                     }
                 });
