@@ -56,4 +56,17 @@ public static class AppConfigManager
         Directory.CreateDirectory(dir);
         File.WriteAllText(ConfigPath, json, new UTF8Encoding(false));
     }
+
+    public static void RememberVaultHome(string? vaultHome)
+    {
+        if (string.IsNullOrWhiteSpace(vaultHome))
+            return;
+
+        var normalized = Path.GetFullPath(vaultHome);
+        if (string.Equals(Config.Database.LastVaultHome, normalized, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Config.Database.LastVaultHome = normalized;
+        Save();
+    }
 }

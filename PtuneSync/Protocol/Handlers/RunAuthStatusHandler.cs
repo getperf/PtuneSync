@@ -50,6 +50,7 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
         try
         {
             var tokenWorkDir = ResolveTokenWorkDir(runRequest.Home);
+            AppConfigManager.RememberVaultHome(runRequest.Home);
             AppLog.Info("[RunAuthStatusHandler] home={Home} tokenWorkDir={TokenWorkDir}", runRequest.Home, tokenWorkDir);
 
             var storage = new TokenStorage(tokenWorkDir);

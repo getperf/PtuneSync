@@ -35,13 +35,19 @@ namespace PtuneSync.Views
 
             flyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "再認証",
+                Text = AppStrings.ReauthenticateMenu,
                 Command = vm.ReauthenticateCommand
             });
 
             flyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "ログフォルダを開く",
+                Text = AppStrings.DatabaseSettingsMenu,
+                Command = vm.ShowDatabaseSettingsCommand
+            });
+
+            flyout.Items.Add(new MenuFlyoutItem
+            {
+                Text = AppStrings.OpenLogFolderMenu,
                 Command = vm.OpenLogFolderCommand
             });
 
@@ -49,7 +55,7 @@ namespace PtuneSync.Views
 
             flyout.Items.Add(new MenuFlyoutItem
             {
-                Text = "バージョン情報",
+                Text = AppStrings.VersionInfoMenu,
                 Command = vm.ShowVersionCommand
             });
 

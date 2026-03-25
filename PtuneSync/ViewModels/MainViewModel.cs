@@ -13,10 +13,11 @@ namespace PtuneSync.ViewModels
         private readonly ResetService _resetService;
         private readonly ReauthService _reauthService;
         private readonly SystemOpenerService _opener;
+        private readonly DatabaseSettingsDialogService _databaseSettingsDialogService;
 
         public TaskEditorViewModel Editor { get; } = new TaskEditorViewModel();
 
-        private string _statusMessage = "準備完了";
+        private string _statusMessage = AppStrings.Ready;
 
         public string StatusMessage
         {
@@ -30,18 +31,19 @@ namespace PtuneSync.ViewModels
             _resetService = new ResetService();
             _reauthService = new ReauthService();
             _opener = new SystemOpenerService();
+            _databaseSettingsDialogService = new DatabaseSettingsDialogService();
         }
 
         // ★ Export コマンドで Editor.Tasks を利用
         [RelayCommand]
         private async Task ExportAsync()
         {
-            StatusMessage = "エクスポート中…";
+            StatusMessage = AppStrings.Exporting;
 
             var result = await _exportService.ExecuteAsync(Editor.Tasks);
 
             StatusMessage = result.Success
-                ? "エクスポート完了"
+                ? AppStrings.ExportCompleted
                 : $"失敗: {result.Message}";
         }
 
@@ -50,11 +52,11 @@ namespace PtuneSync.ViewModels
         {
             AppLog.Debug("[MainViewModel] ResetAsync invoked");
 
-            StatusMessage = "リセット中…";
+            StatusMessage = AppStrings.Resetting;
             await Task.Delay(200);
 
             await _resetService.ExecuteAsync();
-            StatusMessage = "タスクをすべてリセットしました";
+            StatusMessage = AppStrings.ResetCompleted;
 
             AppLog.Debug("[MainViewModel] ResetAsync completed");
         }
@@ -62,26 +64,26 @@ namespace PtuneSync.ViewModels
         [RelayCommand]
         private async Task ReauthenticateAsync()
         {
-            StatusMessage = "再認証を開始します…";
+            StatusMessage = AppStrings.ReauthStarting;
             AppLog.Debug("[MainViewModel] ReauthenticateAsync invoked");
 
             var result = await _reauthService.ExecuteAsync();
 
             StatusMessage = result.Success
-                ? "再認証が完了しました"
+                ? AppStrings.ReauthCompleted
                 : $"再認証に失敗しました: {result.Message}";
         }
 
         [RelayCommand]
         private async Task OpenLogFolder()
         {
-            StatusMessage = "ログフォルダを開いています…";
+            StatusMessage = AppStrings.OpeningLogFolder;
 
             bool ok = await _opener.OpenLogFolderAsync();
 
             StatusMessage = ok
-                ? "ログフォルダを開きました"
-                : "ログフォルダを開けませんでした";
+                ? AppStrings.OpenedLogFolder
+                : AppStrings.FailedToOpenLogFolder;
         }
 
         [RelayCommand]
@@ -96,9 +98,24 @@ namespace PtuneSync.ViewModels
                 $"Build    : GUI / WinUI3\n" +
                 $"--------------------------------";
 
-            await new UserDialogService().ShowMessageAsync(msg, "バージョン情報");
+            await new UserDialogService().ShowMessageAsync(msg, AppStrings.VersionInfoTitle);
 
             StatusMessage = $"PtuneSync v{version}";
+        }
+
+        [RelayCommand]
+        private async Task ShowDatabaseSettings()
+        {
+            var result = await _databaseSettingsDialogService.ShowAsync();
+            if (!result.Saved)
+            {
+                StatusMessage = AppStrings.DatabaseSettingsUnchanged;
+                return;
+            }
+
+            AppConfigManager.Config.Database.LocationMode = result.SelectedMode;
+            AppConfigManager.Save();
+            StatusMessage = AppStrings.DatabaseSettingsSaved;
         }
     }
 }

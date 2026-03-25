@@ -4,6 +4,7 @@ public class AppConfig
 {
     public LoggingConfig Logging { get; set; } = new();
     public GoogleOAuthConfig GoogleOAuth { get; set; } = new();
+    public DatabaseSettings Database { get; set; } = new();
     public OtherSettings OtherSettings { get; set; } = new();
 
     public static AppConfig Default() => new AppConfig
@@ -18,6 +19,10 @@ public class AppConfig
             ClientId = "189748391236-stkhp5so69pkh651dolsts98rv2vb899.apps.googleusercontent.com",
             RedirectUri = "net.getperf.ptune.googleoauth:/oauth2redirect",
             Scope = "https://www.googleapis.com/auth/tasks"
+        },
+        Database = new DatabaseSettings
+        {
+            LocationMode = DbLocationMode.AppLocal
         },
         OtherSettings = new OtherSettings
         {
@@ -42,4 +47,16 @@ public class GoogleOAuthConfig
 public class OtherSettings
 {
     public bool CheckUpdate { get; set; } = true;
+}
+
+public enum DbLocationMode
+{
+    AppLocal,
+    VaultWork,
+}
+
+public class DatabaseSettings
+{
+    public DbLocationMode LocationMode { get; set; } = DbLocationMode.AppLocal;
+    public string LastVaultHome { get; set; } = "";
 }
