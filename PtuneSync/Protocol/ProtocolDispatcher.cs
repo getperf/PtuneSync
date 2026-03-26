@@ -18,6 +18,7 @@ public static class ProtocolDispatcher
         { "run/auth/login", new Handlers.RunAuthLoginHandler() },
         { "run/pull", new Handlers.RunPullHandler() },
         { "run/diff", new Handlers.RunDiffHandler() },
+        { "run/push", new Handlers.RunPushHandler() },
     };
 
     public static async Task Dispatch(Uri uri)

@@ -72,6 +72,9 @@ public sealed class RunRequestArgs
 
     [JsonPropertyName("include_completed")]
     public bool IncludeCompleted { get; set; }
+
+    [JsonPropertyName("allow_delete")]
+    public bool AllowDelete { get; set; }
 }
 
 public sealed class RunRequestInput

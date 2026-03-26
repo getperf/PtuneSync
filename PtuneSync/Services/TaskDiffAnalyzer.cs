@@ -7,7 +7,9 @@ namespace PtuneSync.Services;
 
 public static class TaskDiffAnalyzer
 {
-    public static DiffCommandResult Analyze(
+    public static bool IsGoogleIdForExternalUse(string? id) => IsGoogleId(id);
+
+    public static TaskDiffPlan BuildPlan(
         IReadOnlyCollection<MyTask> localTasks,
         IReadOnlyCollection<MyTask> remoteTasks)
     {
@@ -16,25 +18,31 @@ public static class TaskDiffAnalyzer
             .GroupBy(static task => task.Id, StringComparer.Ordinal)
             .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
 
-        var toCreate = 0;
-        var toUpdate = 0;
-        var toDelete = 0;
+        var toCreate = new List<MyTask>();
+        var toUpdate = new List<MyTask>();
+        var toDelete = new List<MyTask>();
         var errors = new List<string>();
         var warnings = new List<string>();
+        var matchedRemoteIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var localTask in localTasks)
         {
-            if (!IsGoogleId(localTask.Id))
+            if (string.IsNullOrWhiteSpace(localTask.Id))
             {
-                toCreate++;
+                toCreate.Add(localTask);
                 continue;
             }
 
             if (!remoteById.TryGetValue(localTask.Id, out var remoteTask))
             {
-                errors.Add($"Remote task missing: {localTask.Id}");
+                // ptune-task keeps local task keys when a task has not yet been
+                // synchronized to Google Tasks. Those keys can look opaque, so
+                // absence on remote is treated as create rather than hard error.
+                toCreate.Add(localTask);
                 continue;
             }
+
+            matchedRemoteIds.Add(localTask.Id);
 
             if (IsCompleted(remoteTask) && !IsCompleted(localTask))
             {
@@ -44,32 +52,26 @@ public static class TaskDiffAnalyzer
 
             if (!HasSameContent(localTask, remoteTask))
             {
-                toUpdate++;
+                toUpdate.Add(localTask);
             }
         }
-
-        var localGoogleIds = localTasks
-            .Where(static task => IsGoogleId(task.Id))
-            .Select(static task => task.Id)
-            .ToHashSet(StringComparer.Ordinal);
 
         foreach (var remoteTask in remoteTasks)
         {
-            if (IsGoogleId(remoteTask.Id) && !localGoogleIds.Contains(remoteTask.Id))
+            if (IsGoogleId(remoteTask.Id) && !matchedRemoteIds.Contains(remoteTask.Id))
             {
-                toDelete++;
+                toDelete.Add(remoteTask);
             }
         }
 
-        return new DiffCommandResult(
-            new DiffSummary(
-                toCreate,
-                toUpdate,
-                toDelete,
-                errors.Count,
-                warnings.Count),
-            errors,
-            warnings);
+        return new TaskDiffPlan(toCreate, toUpdate, toDelete, errors, warnings);
+    }
+
+    public static DiffCommandResult Analyze(
+        IReadOnlyCollection<MyTask> localTasks,
+        IReadOnlyCollection<MyTask> remoteTasks)
+    {
+        return BuildPlan(localTasks, remoteTasks).ToCommandResult();
     }
 
     private static bool IsGoogleId(string? id)
@@ -114,5 +116,26 @@ public static class TaskDiffAnalyzer
         }
 
         return left.ToHashSet(StringComparer.Ordinal).SetEquals(right);
+    }
+}
+
+public sealed record TaskDiffPlan(
+    IReadOnlyList<MyTask> ToCreate,
+    IReadOnlyList<MyTask> ToUpdate,
+    IReadOnlyList<MyTask> ToDelete,
+    IReadOnlyList<string> Errors,
+    IReadOnlyList<string> Warnings)
+{
+    public DiffCommandResult ToCommandResult()
+    {
+        return new DiffCommandResult(
+            new DiffSummary(
+                ToCreate.Count,
+                ToUpdate.Count,
+                ToDelete.Count,
+                Errors.Count,
+                Warnings.Count),
+            Errors,
+            Warnings);
     }
 }

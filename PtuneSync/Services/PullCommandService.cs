@@ -46,7 +46,7 @@ public sealed class PullCommandService
         var oauthManager = new OAuthManager(AppConfigManager.Config.GoogleOAuth, tokenWorkDir);
         var api = new GoogleTasksAPI(oauthManager);
         var importer = new TasksImporter(api);
-        var fetchedTasks = await importer.FetchTasksAsync(listName);
+        var fetchedTasks = TaskTreeOrderService.Rebuild(await importer.FetchTasksAsync(listName));
 
         var runtime = await _databaseRuntimeFactory.CreateForVaultAsync(request.Home, cancellationToken);
         var syncId = Guid.NewGuid().ToString();

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using PtuneSync.GoogleTasks;
@@ -28,7 +27,13 @@ public sealed class DiffCommandService
             throw new FileNotFoundException("task_json_file was not found.", taskJsonFile);
         }
 
-        var localTasks = await ReadLocalTasksAsync(taskJsonFile, cancellationToken);
+        var taskDocument = await TaskJsonDocumentReader.ReadAsync(taskJsonFile, cancellationToken);
+        if (taskDocument.Tasks.Count == 0)
+        {
+            throw new InvalidOperationException("task_json_file must contain a tasks array.");
+        }
+
+        var localTasks = TaskJsonDocumentReader.ToMyTasks(taskDocument.Tasks);
         var listName = ResolveListName(request, localTasks);
 
         AppConfigManager.RememberVaultHome(request.Home);
@@ -40,25 +45,6 @@ public sealed class DiffCommandService
 
         return TaskDiffAnalyzer.Analyze(localTasks, remoteTasks);
     }
-
-    private static async Task<List<MyTask>> ReadLocalTasksAsync(string taskJsonFile, CancellationToken cancellationToken)
-    {
-        var raw = await File.ReadAllTextAsync(taskJsonFile, cancellationToken);
-        using var document = JsonDocument.Parse(raw);
-
-        if (!document.RootElement.TryGetProperty("tasks", out var tasksElement) || tasksElement.ValueKind != JsonValueKind.Array)
-        {
-            throw new InvalidOperationException("task_json_file must contain a tasks array.");
-        }
-
-        var tasks = JsonSerializer.Deserialize<List<MyTask>>(tasksElement.GetRawText(), new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-        });
-
-        return tasks ?? new List<MyTask>();
-    }
-
     private static string ResolveListName(RunRequestFile request, IReadOnlyList<MyTask> localTasks)
     {
         if (!string.IsNullOrWhiteSpace(request.Args?.List))
