@@ -1,9 +1,7 @@
 using System;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using PtuneSync.Infrastructure;
-using PtuneSync.OAuth;
 using PtuneSync.Services;
 
 namespace PtuneSync.Protocol.Handlers;
@@ -22,8 +20,7 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
         RunRequestFile? runRequest;
         try
         {
-            var raw = await File.ReadAllTextAsync(requestFile);
-            runRequest = JsonSerializer.Deserialize<RunRequestFile>(raw);
+            runRequest = await RunRequestFileReader.ReadAsync(requestFile);
         }
         catch (Exception ex)
         {
@@ -31,16 +28,17 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
             return;
         }
 
-        if (runRequest == null || string.IsNullOrWhiteSpace(runRequest.RequestId) || string.IsNullOrWhiteSpace(runRequest.StatusFile))
+        if (!RunRequestFileReader.IsValid(runRequest))
         {
             AppLog.Warn("[RunAuthStatusHandler] Invalid request payload: {0}", requestFile);
             return;
         }
 
+        var statusFile = runRequest!.ResolveStatusFile()!;
         const string command = "auth-status";
 
         await RunStatusFileService.WriteAsync(
-            runRequest.StatusFile,
+            statusFile,
             runRequest.RequestId,
             command,
             phase: "accepted",
@@ -49,16 +47,16 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
 
         try
         {
-            var tokenWorkDir = ResolveTokenWorkDir(runRequest.Home);
+            var tokenWorkDir = TokenWorkDirResolver.Resolve(runRequest.Home, "RunAuthStatusHandler");
             AppConfigManager.RememberVaultHome(runRequest.Home);
             AppLog.Info("[RunAuthStatusHandler] home={Home} tokenWorkDir={TokenWorkDir}", runRequest.Home, tokenWorkDir);
 
-            var storage = new TokenStorage(tokenWorkDir);
+            var storage = new OAuth.TokenStorage(tokenWorkDir);
             var token = storage.Load();
             var authenticated = token != null && token.ExpiresAt > DateTime.Now;
 
             await RunStatusFileService.WriteAsync(
-                runRequest.StatusFile,
+                statusFile,
                 runRequest.RequestId,
                 command,
                 phase: "completed",
@@ -77,7 +75,7 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
         {
             AppLog.Error(ex, "[RunAuthStatusHandler] auth-status failed");
             await RunStatusFileService.WriteAsync(
-                runRequest.StatusFile,
+                statusFile,
                 runRequest.RequestId,
                 command,
                 phase: "completed",
@@ -89,27 +87,5 @@ public sealed class RunAuthStatusHandler : IProtocolHandler
                     message = ex.Message,
                 });
         }
-    }
-
-    private static string ResolveTokenWorkDir(string? home)
-    {
-        if (!string.IsNullOrWhiteSpace(home))
-        {
-            var normalizedHome = Path.GetFullPath(home);
-            var authDir = Path.Combine(normalizedHome, "auth");
-            var authTokenFile = Path.Combine(authDir, "token.json");
-            var homeTokenFile = Path.Combine(normalizedHome, "token.json");
-
-            if (Directory.Exists(authDir) || File.Exists(authTokenFile))
-                return authDir;
-
-            if (File.Exists(homeTokenFile))
-                return normalizedHome;
-
-            return authDir;
-        }
-
-        AppLog.Warn("[RunAuthStatusHandler] home missing. Falling back to legacy token path.");
-        return AppPaths.WorkDir(AppPaths.VaultHome);
     }
 }

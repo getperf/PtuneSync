@@ -6,14 +6,14 @@ using PtuneSync.Services;
 
 namespace PtuneSync.Protocol.Handlers;
 
-public sealed class RunAuthLoginHandler : IProtocolHandler
+public sealed class RunPullHandler : IProtocolHandler
 {
     public async Task ExecuteAsync(ProtocolRequest request)
     {
         var requestFile = request.Get("request_file");
         if (string.IsNullOrWhiteSpace(requestFile) || !File.Exists(requestFile))
         {
-            AppLog.Warn("[RunAuthLoginHandler] request_file missing: {0}", requestFile ?? "<null>");
+            AppLog.Warn("[RunPullHandler] request_file missing: {0}", requestFile ?? "<null>");
             return;
         }
 
@@ -24,18 +24,18 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
         }
         catch (Exception ex)
         {
-            AppLog.Error(ex, "[RunAuthLoginHandler] Failed to read request.json: {0}", requestFile);
+            AppLog.Error(ex, "[RunPullHandler] Failed to read request.json: {0}", requestFile);
             return;
         }
 
         if (!RunRequestFileReader.IsValid(runRequest))
         {
-            AppLog.Warn("[RunAuthLoginHandler] Invalid request payload: {0}", requestFile);
+            AppLog.Warn("[RunPullHandler] Invalid request payload: {0}", requestFile);
             return;
         }
 
         var statusFile = runRequest!.ResolveStatusFile()!;
-        const string command = "auth-login";
+        const string command = "pull";
 
         await RunStatusFileService.WriteAsync(
             statusFile,
@@ -47,25 +47,16 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
 
         try
         {
-            var tokenWorkDir = TokenWorkDirResolver.Resolve(runRequest.Home, "RunAuthLoginHandler");
-            AppConfigManager.RememberVaultHome(runRequest.Home);
-            AppLog.Info("[RunAuthLoginHandler] home={Home} tokenWorkDir={TokenWorkDir}", runRequest.Home, tokenWorkDir);
-
             await RunStatusFileService.WriteAsync(
                 statusFile,
                 runRequest.RequestId,
                 command,
                 phase: "running",
                 status: "running",
-                message: "browser login started");
+                message: "pull started");
 
-            var config = AppConfigManager.Config.GoogleOAuth;
-            var storage = new OAuth.TokenStorage(tokenWorkDir);
-            storage.Delete();
-
-            var manager = new OAuth.OAuthManager(config, tokenWorkDir);
-            var token = await manager.GetOrRefreshAsync();
-            var authenticated = token.ExpiresAt > DateTime.Now;
+            var service = new PullCommandService();
+            var result = await service.ExecuteAsync(runRequest);
 
             await RunStatusFileService.WriteAsync(
                 statusFile,
@@ -73,29 +64,39 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
                 command,
                 phase: "completed",
                 status: "success",
-                message: "auth-login completed",
+                message: "pull completed",
                 data: new
                 {
-                    auth = new
+                    schema_version = 2,
+                    list = result.ListName,
+                    include_completed = result.IncludeCompleted,
+                    exported_at = result.ExportedAt,
+                    tasks = result.ResponseTasks,
+                    meta = new
                     {
-                        authenticated,
-                        expires_at = token.ExpiresAt.ToString("O"),
-                    }
+                        task_count = result.ResponseTasks.Count,
+                        fetched_count = result.TotalFetchedCount,
+                        backup_file = result.BackupFile,
+                        accepted_count = result.SyncRecord.AcceptedCount,
+                        added_count = result.SyncRecord.AddedCount,
+                        updated_count = result.SyncRecord.UpdatedCount,
+                        deleted_count = result.SyncRecord.DeletedCount,
+                    },
                 });
         }
         catch (Exception ex)
         {
-            AppLog.Error(ex, "[RunAuthLoginHandler] auth-login failed");
+            AppLog.Error(ex, "[RunPullHandler] pull failed");
             await RunStatusFileService.WriteAsync(
                 statusFile,
                 runRequest.RequestId,
                 command,
                 phase: "completed",
                 status: "error",
-                message: "auth-login failed",
+                message: "pull failed",
                 error: new
                 {
-                    type = "OAUTH_ERROR",
+                    type = "SYSTEM_ERROR",
                     message = ex.Message,
                 });
         }
