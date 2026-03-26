@@ -17,7 +17,12 @@ Use one run directory per request:
 - `work/runs/<request_id>/request.json`
 - `work/runs/<request_id>/status.json`
 
-Do not introduce additional public JSON files at this stage.
+Do not introduce additional required public JSON files at this stage.
+
+Command-local artifacts are allowed when explicitly documented. The first such
+artifact is:
+
+- `work/runs/<request_id>/pull-backup.json` for successful `pull --include-completed`
 
 ### 1.2 request.json
 
@@ -73,6 +78,8 @@ Optional fields:
 - `data`
 - `instance_id`
 - `retry_count`
+
+`data.backup_file` is allowed when a command produces a run-local artifact.
 
 Recommended shape:
 
@@ -326,6 +333,7 @@ The following should be treated as frozen unless a later contract review changes
 - all observable command state stays file-based
 - one run directory per `request_id`
 - public files are limited to `request.json` and `status.json`
+- command-local artifacts such as `pull-backup.json` are optional and non-required
 - startup retry is allowed only before `accepted`
 - dispatcher idempotency is based on `request_id`
 - cleanup is delayed and best-effort

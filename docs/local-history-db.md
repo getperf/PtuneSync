@@ -21,81 +21,119 @@ The database schema is NOT part of the public CLI or URI contract.
 
 Stores the latest normalized task state.
 
-Suggested columns:
+Columns:
 
-- `task_id TEXT PRIMARY KEY`
+- `id TEXT PRIMARY KEY`
 - `list_name TEXT NOT NULL`
 - `title TEXT NOT NULL`
 - `status TEXT NOT NULL`
-- `parent_task_id TEXT NULL`
-- `started_at TEXT NULL`
-- `completed_at TEXT NULL`
-- `pomodoro_planned REAL NULL`
+- `parent TEXT NULL`
+- `started TEXT NULL`
+- `completed TEXT NULL`
+- `pomodoro_planned INTEGER NULL`
 - `pomodoro_actual REAL NULL`
+- `review_flags_json TEXT NULL`
 - `goal TEXT NULL`
-- `tags_json TEXT NOT NULL`
-- `review_flags_json TEXT NOT NULL`
-- `source_updated_at TEXT NULL`
+- `tags_json TEXT NULL`
+- `google_updated_at TEXT NULL`
 - `last_pulled_at TEXT NULL`
 - `last_pushed_at TEXT NULL`
-- `is_deleted INTEGER NOT NULL DEFAULT 0`
+- `deleted_at TEXT NULL`
 
-### `task_history`
+Notes:
 
-Stores snapshots created during `pull`, `push`, and other review-relevant flows.
+- `tasks` is the current-state cache.
+- `pull` and `push` both update this table.
+- `diff` reads from this table and SHOULD NOT mutate it.
+- `deleted_at IS NULL` means the task is currently active.
 
-Suggested columns:
+### `sync_histories`
 
-- `id INTEGER PRIMARY KEY AUTOINCREMENT`
-- `sync_id TEXT NOT NULL`
-- `task_id TEXT NOT NULL`
-- `direction TEXT NOT NULL`
-- `snapshot_at TEXT NOT NULL`
-- `payload_json TEXT NOT NULL`
-- `change_type TEXT NOT NULL`
-- `list_name TEXT NOT NULL`
+Stores one record per command execution.
 
-### `sync_history`
+Columns:
 
-Stores one record per sync execution.
-
-Suggested columns:
-
-- `sync_id TEXT PRIMARY KEY`
+- `id TEXT PRIMARY KEY`
 - `command TEXT NOT NULL`
+- `status TEXT NOT NULL`
+- `list_name TEXT NOT NULL`
+- `daily_note_key TEXT NULL`
 - `started_at TEXT NOT NULL`
 - `completed_at TEXT NULL`
-- `status TEXT NOT NULL`
-- `task_list TEXT NULL`
 - `accepted_count INTEGER NOT NULL DEFAULT 0`
 - `added_count INTEGER NOT NULL DEFAULT 0`
 - `updated_count INTEGER NOT NULL DEFAULT 0`
 - `deleted_count INTEGER NOT NULL DEFAULT 0`
-- `error_type TEXT NULL`
-- `error_message TEXT NULL`
+- `note TEXT NULL`
+
+Notes:
+
+- `command` values are expected to include `pull`, `diff`, `push`, and `review`.
+- `status` is expected to include `running`, `success`, and `error`.
+- `daily_note_key` uses `YYYY-MM-DD`.
+- `error` details are intentionally kept out of the DB and should remain in logs and `status.json`.
+
+### `task_histories`
+
+Stores task snapshots for commands that intentionally create historical records.
+
+Columns:
+
+- `history_id TEXT PRIMARY KEY`
+- `task_id TEXT NOT NULL`
+- `list_name TEXT NOT NULL`
+- `daily_note_key TEXT NULL`
+- `title TEXT NOT NULL`
+- `status TEXT NOT NULL`
+- `parent TEXT NULL`
+- `started TEXT NULL`
+- `completed TEXT NULL`
+- `pomodoro_planned INTEGER NULL`
+- `pomodoro_actual REAL NULL`
+- `review_flags_json TEXT NULL`
+- `goal TEXT NULL`
+- `tags_json TEXT NULL`
+- `snapshot_at TEXT NOT NULL`
+- `snapshot_type TEXT NOT NULL`
+- `sync_history_id TEXT NOT NULL`
+- `deleted_at TEXT NULL`
+- `google_updated_at TEXT NULL`
+
+Notes:
+
+- `task_histories` is written by `push` and `review`.
+- `pull` does NOT write `task_histories`.
+- `diff` does NOT write `task_histories`.
+- `daily_note_key` is primarily for `review` so the latest successful review for a day is easy to identify.
 
 ## 4. Pull Behavior
 
 1. Fetch tasks from Google Tasks.
 2. Upsert current state into `tasks`.
 3. Soft delete missing tasks.
-4. Record the execution in `sync_history`.
-5. Save changed task snapshots into `task_history`.
+4. Record the execution in `sync_histories`.
+5. Do not write `task_histories`.
+6. If `include_completed=true`, PtuneSync MAY write a run-local JSON backup file such as `pull-backup.json`.
+
+The backup file is a short-lived run artifact and is not part of the SQLite history model.
 
 ## 5. Push Behavior
 
 1. Validate input JSON.
 2. Apply accepted changes to Google Tasks.
 3. Update `tasks` to match accepted changes.
-4. Record the execution in `sync_history`.
-5. Save pushed task snapshots into `task_history`.
+4. Record the execution in `sync_histories`.
+5. Save pushed task snapshots into `task_histories`.
 
 ## 6. Review Behavior
 
 `review` reads from the local history database and MUST NOT call Google Tasks.
 
-The command SHOULD search `task_history` for one day of task activity and export
+The command SHOULD search `task_histories` for one day of task activity and export
 the result as JSON.
+
+The command SHOULD identify the latest successful review for a given
+`daily_note_key` and `list_name` through `sync_histories`.
 
 ## 7. Stability Policy
 

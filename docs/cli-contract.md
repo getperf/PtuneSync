@@ -40,7 +40,35 @@ Removed commands:
 - `export`
 - `import`
 
-## 4. Response Envelope
+## 4. Command Notes
+
+### `pull`
+
+- MUST support a target list option.
+- MAY support `include_completed`.
+- MUST update the current task cache in SQLite.
+- MUST NOT write `task_histories`.
+- If `include_completed=true`, URI-based execution MAY emit a run-local `pull-backup.json` file.
+
+### `diff`
+
+- MUST compare input task JSON against the current task cache and/or remote state as defined by implementation.
+- SHOULD be treated as read-only against the local DB.
+
+### `push`
+
+- MUST validate input JSON before mutating Google Tasks.
+- MAY support `allow_delete`.
+- MUST update the current task cache after accepted remote changes.
+- MUST write execution counts into synchronization history.
+
+### `review`
+
+- MUST read from the local SQLite history database.
+- MUST NOT call Google Tasks.
+- SHOULD support a `date` that maps to `daily_note_key` in the DB model.
+
+## 5. Response Envelope
 
 Successful execution:
 
@@ -79,8 +107,9 @@ Rules:
 - `stdout` MUST contain JSON only for direct CLI execution.
 - logs MUST go to `stderr`.
 - clients MUST ignore unknown fields.
+- URI-based execution MAY include run-artifact file paths such as `backup_file` under `data`.
 
-## 5. Exit Codes
+## 6. Exit Codes
 
 | Code | Meaning |
 | ---- | ------- |
@@ -88,7 +117,7 @@ Rules:
 | 1 | Known error |
 | 2 | Unexpected system error |
 
-## 6. Error Types
+## 7. Error Types
 
 | Type | Description |
 | ---- | ----------- |
@@ -98,7 +127,7 @@ Rules:
 | `CONTRACT_ERROR` | Invalid command or unsupported contract usage |
 | `SYSTEM_ERROR` | Unexpected internal error |
 
-## 7. Stability Rules
+## 8. Stability Rules
 
 - Removing commands is not allowed after contract publication.
 - Removing options is not allowed after contract publication.

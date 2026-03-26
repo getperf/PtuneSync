@@ -76,6 +76,7 @@ work/
 
 Optional auxiliary files MAY be added later:
 
+- `pull-backup.json`
 - `events.log`
 - `debug.log`
 
@@ -85,6 +86,10 @@ However, the minimum recommended contract is:
 - `status.json`
 
 This keeps the contract compact while preserving request / response separation.
+
+`pull-backup.json` is a command-local artifact rather than a required public file.
+It is recommended only for successful `pull --include-completed` runs where the
+caller wants a short-lived pre-push safety copy in the same run directory.
 
 ---
 

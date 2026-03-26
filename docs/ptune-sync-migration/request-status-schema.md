@@ -10,6 +10,9 @@ The minimum contract uses two files per run:
 - `request.json`
 - `status.json`
 
+The run directory MAY also contain command-specific auxiliary files such as
+`pull-backup.json`, but those files are not part of the minimum public contract.
+
 ## `request.json`
 
 ### Purpose
@@ -85,6 +88,15 @@ It is the only file the caller needs to observe after launch.
 | `data` | object or null | final or intermediate result payload |
 | `error` | object or null | structured error envelope |
 | `meta` | object or null | diagnostics metadata |
+
+`data` MAY contain run-local artifact paths when useful. For example, a
+successful `pull` with `include_completed=true` may include:
+
+```json
+{
+  "backup_file": "work/runs/20260322T080000Z-a1b2c3/pull-backup.json"
+}
+```
 
 ## `phase`
 

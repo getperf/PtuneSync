@@ -31,10 +31,17 @@ ptunesync://review?home=C:\workspace&date=2026-03-22&output=review.json
 
 The review command uses:
 
-- `task_history`
+- `task_histories`
+- `sync_histories`
 - `tasks` when supplemental latest state is needed
 
 It MUST NOT mutate synchronization state.
+
+The recommended selection rule is:
+
+1. find the latest successful `review` execution for the target `date` and `list`
+2. read its `sync_history_id`
+3. export the related `task_histories`
 
 ## 5. Output Shape
 
@@ -54,3 +61,4 @@ It MUST NOT mutate synchronization state.
 - The output may be consumed by ptune-task or Obsidian-side tooling.
 - If no tasks are found for the date, the command SHOULD still return a valid
   empty task array.
+- `date` is expected to align with `daily_note_key` in the local DB.

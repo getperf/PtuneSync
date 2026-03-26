@@ -64,6 +64,7 @@ It is intended to be used after reading:
 - Write `request.json` before URI launch
 - Ensure atomic write behavior for request files
 - Move command input payload references into request metadata
+- Keep command-local artifacts in the same run directory
 
 ### 2.3 URI Builder / Client
 
@@ -124,6 +125,7 @@ It is intended to be used after reading:
 - Route `diff`
 - Route `push`
 - Route `review`
+- For `pull --include-completed`, write optional `pull-backup.json` into the run directory on success
 
 ### 3.6 Idempotency
 
@@ -181,9 +183,10 @@ If implementation should begin with the smallest end-to-end slice, the recommend
 2. Update Obsidian work dir and request writing
 3. Update Obsidian watcher to support `accepted`
 4. Implement WinUI `ProtocolDispatcher` with idempotent accepted write
-5. Validate `auth-status` or another small command first
-6. Add startup retry
-7. Expand to `pull`, `diff`, `push`, and `review`
+5. Implement `pull` first, including optional `pull-backup.json` for `include_completed`
+6. Validate `pull` from ptune-task through URI activation
+7. Add startup retry
+8. Expand to `diff`, `push`, and `review`
 
 ## Open Follow-up Items
 
