@@ -2,5 +2,5 @@ namespace PtuneSync.Infrastructure.Sqlite;
 
 public static class DatabaseVersionManager
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 }
