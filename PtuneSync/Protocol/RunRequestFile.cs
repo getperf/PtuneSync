@@ -26,6 +26,9 @@ public sealed class RunRequestFile
     [JsonPropertyName("workspace")]
     public RunRequestWorkspace? Workspace { get; set; }
 
+    [JsonPropertyName("input")]
+    public RunRequestInput? Input { get; set; }
+
     [JsonPropertyName("args")]
     public RunRequestArgs? Args { get; set; }
 
@@ -69,4 +72,10 @@ public sealed class RunRequestArgs
 
     [JsonPropertyName("include_completed")]
     public bool IncludeCompleted { get; set; }
+}
+
+public sealed class RunRequestInput
+{
+    [JsonPropertyName("task_json_file")]
+    public string TaskJsonFile { get; set; } = "";
 }
