@@ -24,14 +24,24 @@ public sealed class TaskReorderService
     {
         AppLog.Debug("[TaskReorderService] reorder start listId={0}", listId);
 
+        var restrictedIds = remoteTasks
+            .Where(IsReorderRestricted)
+            .Select(static task => task.Id)
+            .Where(static id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.Ordinal);
+
         var localMap = TaskOrderBuilder.BuildAsIs(localTasks);
         var remoteMap = TaskOrderBuilder.BuildRemoteNormalized(remoteTasks);
         var allParents = localMap.Keys.Concat(remoteMap.Keys).Distinct(StringComparer.Ordinal).ToList();
 
         foreach (var parentId in allParents)
         {
-            var localIds = ExtractIds(localMap.TryGetValue(parentId, out var localGroup) ? localGroup : null);
-            var remoteIds = ExtractIds(remoteMap.TryGetValue(parentId, out var remoteGroup) ? remoteGroup : null);
+            var localIds = ExtractIds(
+                localMap.TryGetValue(parentId, out var localGroup) ? localGroup : null,
+                restrictedIds);
+            var remoteIds = ExtractIds(
+                remoteMap.TryGetValue(parentId, out var remoteGroup) ? remoteGroup : null,
+                restrictedIds);
 
             AppLog.Debug(
                 "[TaskReorderService] parent={0} local=[{1}] remote=[{2}]",
@@ -56,6 +66,15 @@ public sealed class TaskReorderService
                     continue;
                 }
 
+                if (restrictedIds.Contains(task.Id))
+                {
+                    AppLog.Debug(
+                        "[TaskReorderService] skip restricted move id={0} title={1}",
+                        task.Id,
+                        task.Title);
+                    continue;
+                }
+
                 var effectiveParentId = parentId == TaskTreeOrderService.RootParentKey ? null : parentId;
                 await _api.MoveTaskAsync(task.Id, listId, effectiveParentId, previousId: null);
             }
@@ -64,9 +83,16 @@ public sealed class TaskReorderService
         AppLog.Debug("[TaskReorderService] reorder end");
     }
 
-    private static List<string> ExtractIds(List<MyTask>? tasks)
+    private static bool IsReorderRestricted(MyTask task)
+    {
+        return string.Equals(task.Status, "completed", StringComparison.OrdinalIgnoreCase)
+            || !string.IsNullOrWhiteSpace(task.Completed);
+    }
+
+    private static List<string> ExtractIds(List<MyTask>? tasks, IReadOnlySet<string> restrictedIds)
     {
         return tasks?.Where(static task => !string.IsNullOrWhiteSpace(task.Id))
+            .Where(task => !restrictedIds.Contains(task.Id))
             .Select(static task => task.Id)
             .ToList()
             ?? new List<string>();
