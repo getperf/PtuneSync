@@ -1,5 +1,6 @@
 // File: PtuneSync/App.xaml.cs
 using System;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using PtuneSync.Infrastructure;
@@ -8,6 +9,8 @@ namespace PtuneSync;
 
 public partial class App : Application
 {
+    private Task<bool>? _startupActivationTask;
+
     public App()
     {
         InitializeComponent();
@@ -24,11 +27,29 @@ public partial class App : Application
         AppConfigManager.LoadOrCreate();
         AppLog.Init(AppConfigManager.Config);
 
+        var startupActivation = AppInstance.GetCurrent().GetActivatedEventArgs();
+        if (startupActivation.Kind == ExtendedActivationKind.Protocol)
+        {
+            AppLog.Info("[App] Startup protocol activation detected in constructor");
+            _startupActivationTask = AppLaunchController.HandleActivation(startupActivation);
+        }
+
         AppInstance.GetCurrent().Activated += OnAppActivated;
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (_startupActivationTask != null)
+        {
+            var handledStartupActivation = await _startupActivationTask;
+            AppLog.Info("[App] Startup activation task handled={HandledActivation}", handledStartupActivation);
+            if (handledStartupActivation)
+            {
+                AppLog.Info("[App] Startup protocol launch handled before UI");
+                return;
+            }
+        }
+
         var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
         var handledActivation = await AppLaunchController.HandleActivation(activation);
         AppLog.Info("[App] OnLaunched handledActivation={HandledActivation}", handledActivation);
