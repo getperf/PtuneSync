@@ -28,6 +28,9 @@ They are intentionally stored outside archived project copies so that:
   - field-level schema for `request.json` and `status.json`
 - `startup-retry-policy.md`
   - focused discussion of retry scope, trigger conditions, and guardrails
+- `activation-policy.md`
+  - policy for when PtuneSync should stay resident, when it should exit, and
+    how GUI launch should interact with a headless runner instance
 - `cleanup-policy.md`
   - focused discussion of per-run directory retention and cleanup behavior
 - `implementation-task-list.md`
@@ -41,8 +44,9 @@ They are intentionally stored outside archived project copies so that:
 3. `protocol-dispatcher.md`
 4. `request-status-schema.md`
 5. `startup-retry-policy.md`
-6. `cleanup-policy.md`
-7. `implementation-task-list.md`
+6. `activation-policy.md`
+7. `cleanup-policy.md`
+8. `implementation-task-list.md`
 
 ## Scope
 

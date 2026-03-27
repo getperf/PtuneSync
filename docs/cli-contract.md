@@ -61,6 +61,8 @@ Removed commands:
 - MAY support `allow_delete`.
 - MUST update the current task cache after accepted remote changes.
 - MUST write execution counts into synchronization history.
+- MAY skip reorder operations for completed tasks.
+- clients MUST NOT assume that `push` will reorder completed tasks to match input order.
 
 ### `review`
 

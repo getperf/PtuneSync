@@ -125,6 +125,11 @@ The backup file is a short-lived run artifact and is not part of the SQLite hist
 4. Record the execution in `sync_histories`.
 5. Save pushed task snapshots into `task_histories`.
 
+Notes:
+
+- completed tasks may be treated as reorder-restricted during push
+- callers should not assume that push rewrites completed-task ordering to exactly match the submitted payload
+
 ## 6. Review Behavior
 
 `review` reads from the local history database and MUST NOT call Google Tasks.
