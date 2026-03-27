@@ -33,6 +33,10 @@ They are intentionally stored outside archived project copies so that:
     how GUI launch should interact with a headless runner instance
 - `cleanup-policy.md`
   - focused discussion of per-run directory retention and cleanup behavior
+- `storage-layout-policy.md`
+  - recommended split between caller-visible interop files and PtuneSync
+    private storage
+  - covers SQLite, token, config, runtime artifact, and backup policy
 - `implementation-task-list.md`
   - ordered implementation task list derived from the migration contract docs
   - intended as the execution checklist after the contract is fixed
@@ -46,7 +50,8 @@ They are intentionally stored outside archived project copies so that:
 5. `startup-retry-policy.md`
 6. `activation-policy.md`
 7. `cleanup-policy.md`
-8. `implementation-task-list.md`
+8. `storage-layout-policy.md`
+9. `implementation-task-list.md`
 
 ## Scope
 
@@ -55,6 +60,7 @@ These documents currently focus on:
 - file-based request / status exchange
 - WinUI migration safety concerns
 - Obsidian-side monitoring behavior
+- storage ownership boundaries between caller and PtuneSync
 
 These documents do not yet define:
 - full OAuth callback flow internals
