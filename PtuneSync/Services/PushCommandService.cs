@@ -251,6 +251,11 @@ public sealed class PushCommandService
         IReadOnlyList<TaskJsonTask> inputTasks,
         IReadOnlyDictionary<string, MyTask> localTaskByOriginalId)
     {
+        var titleMap = localTaskByOriginalId.Values
+            .Where(static task => !string.IsNullOrWhiteSpace(task.Title) && !string.IsNullOrWhiteSpace(task.Id))
+            .GroupBy(static task => task.Title, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First().Id, StringComparer.Ordinal);
+
         foreach (var inputTask in inputTasks)
         {
             if (string.IsNullOrWhiteSpace(inputTask.Id))
@@ -266,10 +271,10 @@ public sealed class PushCommandService
             var parentKey = inputTask.EffectiveParentKey();
 
             if (!string.IsNullOrWhiteSpace(parentKey)
-                && localTaskByOriginalId.TryGetValue(parentKey, out var parentTask)
-                && !string.IsNullOrWhiteSpace(parentTask.Id))
+                && titleMap.TryGetValue(parentKey, out var parentId)
+                && !string.IsNullOrWhiteSpace(parentId))
             {
-                localTask.Parent = parentTask.Id;
+                localTask.Parent = parentId;
             }
             else if (!string.IsNullOrWhiteSpace(localTask.Parent)
                 && localTaskByOriginalId.ContainsKey(localTask.Parent))
@@ -288,6 +293,11 @@ public sealed class PushCommandService
         TaskJsonTask inputTask,
         IDictionary<string, MyTask> localTaskByOriginalId)
     {
+        var titleMap = localTaskByOriginalId.Values
+            .Where(static task => !string.IsNullOrWhiteSpace(task.Title) && !string.IsNullOrWhiteSpace(task.Id))
+            .GroupBy(static task => task.Title, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First().Id, StringComparer.Ordinal);
+
         var clone = new MyTask(string.Empty, source.Title, source.Pomodoro, source.Status)
         {
             Due = source.Due,
@@ -300,11 +310,10 @@ public sealed class PushCommandService
         var parentKey = inputTask.EffectiveParentKey();
 
         if (!string.IsNullOrWhiteSpace(parentKey)
-            && localTaskByOriginalId.TryGetValue(parentKey, out var parentTask)
-            && parentTask is not null
-            && !string.IsNullOrWhiteSpace(parentTask.Id))
+            && titleMap.TryGetValue(parentKey, out var parentId)
+            && !string.IsNullOrWhiteSpace(parentId))
         {
-            clone.Parent = parentTask.Id;
+            clone.Parent = parentId;
         }
         else if (!string.IsNullOrWhiteSpace(source.Parent)
             && !localTaskByOriginalId.ContainsKey(source.Parent))
