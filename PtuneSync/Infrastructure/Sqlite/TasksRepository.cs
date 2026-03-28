@@ -156,6 +156,99 @@ public sealed class TasksRepository
         return new PullSyncRecord(tasks.Count, addedCount, updatedCount, deletedCount);
     }
 
+    public async Task<int> InsertTaskHistoriesAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string syncHistoryId,
+        string listName,
+        IReadOnlyCollection<MyTask> tasks,
+        string snapshotAt,
+        string snapshotType,
+        CancellationToken cancellationToken = default)
+    {
+        var insertedCount = 0;
+
+        foreach (var task in tasks)
+        {
+            if (string.IsNullOrWhiteSpace(task.Id))
+            {
+                continue;
+            }
+
+            await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO task_histories (
+                    history_id,
+                    task_id,
+                    list_name,
+                    daily_note_key,
+                    title,
+                    status,
+                    parent,
+                    started,
+                    completed,
+                    pomodoro_planned,
+                    pomodoro_actual,
+                    review_flags_json,
+                    goal,
+                    tags_json,
+                    snapshot_at,
+                    snapshot_type,
+                    sync_history_id,
+                    deleted_at,
+                    google_updated_at
+                )
+                VALUES (
+                    $historyId,
+                    $taskId,
+                    $listName,
+                    $dailyNoteKey,
+                    $title,
+                    $status,
+                    $parent,
+                    $started,
+                    $completed,
+                    $pomodoroPlanned,
+                    $pomodoroActual,
+                    $reviewFlagsJson,
+                    $goal,
+                    $tagsJson,
+                    $snapshotAt,
+                    $snapshotType,
+                    $syncHistoryId,
+                    $deletedAt,
+                    $googleUpdatedAt
+                );
+                """;
+
+            command.Parameters.AddWithValue("$historyId", Guid.NewGuid().ToString());
+            command.Parameters.AddWithValue("$taskId", task.Id);
+            command.Parameters.AddWithValue("$listName", listName);
+            command.Parameters.AddWithValue("$dailyNoteKey", ToDbValue(ResolveDailyNoteKey(snapshotAt)));
+            command.Parameters.AddWithValue("$title", task.Title);
+            command.Parameters.AddWithValue("$status", task.Status);
+            command.Parameters.AddWithValue("$parent", ToDbValue(task.Parent));
+            command.Parameters.AddWithValue("$started", ToDbValue(task.Started));
+            command.Parameters.AddWithValue("$completed", ToDbValue(task.Completed));
+            command.Parameters.AddWithValue("$pomodoroPlanned", ToDbValue(task.Pomodoro?.Planned));
+            command.Parameters.AddWithValue("$pomodoroActual", ToDbValue(task.Pomodoro?.Actual));
+            command.Parameters.AddWithValue("$reviewFlagsJson", ToDbValue(Serialize(task.ReviewFlags)));
+            command.Parameters.AddWithValue("$goal", DBNull.Value);
+            command.Parameters.AddWithValue("$tagsJson", DBNull.Value);
+            command.Parameters.AddWithValue("$snapshotAt", snapshotAt);
+            command.Parameters.AddWithValue("$snapshotType", snapshotType);
+            command.Parameters.AddWithValue("$syncHistoryId", syncHistoryId);
+            command.Parameters.AddWithValue("$deletedAt", ToDbValue(task.Deleted ? snapshotAt : null));
+            command.Parameters.AddWithValue("$googleUpdatedAt", ToDbValue(task.Updated));
+
+            insertedCount += await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        return insertedCount;
+    }
+
     public async Task ReplaceCurrentTasksFromPushAsync(
         SqliteConnection connection,
         SqliteTransaction transaction,
@@ -292,5 +385,30 @@ public sealed class TasksRepository
     private static string? Serialize<T>(IEnumerable<T>? values)
     {
         return values == null ? null : JsonSerializer.Serialize(values);
+    }
+
+    private static string? ResolveDailyNoteKey(string snapshotAt)
+    {
+        return ToLocalDateKey(snapshotAt);
+    }
+
+    private static string? ToLocalDateKey(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        var normalized = raw.EndsWith("Z", StringComparison.OrdinalIgnoreCase)
+            || raw.Contains("+", StringComparison.Ordinal)
+            ? raw
+            : raw + "Z";
+
+        if (!DateTimeOffset.TryParse(normalized, out var parsed))
+        {
+            return null;
+        }
+
+        return parsed.ToLocalTime().ToString("yyyy-MM-dd");
     }
 }

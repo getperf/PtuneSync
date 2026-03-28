@@ -13,6 +13,11 @@ The target is:
 - no public `request_id`
 - no public `runs/<request_id>/...` dependency
 
+Command responsibility is also intentionally separated:
+
+- `pull` persists Google Tasks data into local storage
+- `review` queries local storage and returns review payload
+
 Internal PtuneSync runtime artifacts may still use private per-operation
 directories, but those are outside the public contract.
 
@@ -343,6 +348,8 @@ changes them intentionally:
 - public caller contract does not depend on `request_id`
 - public caller contract does not depend on `runs/<request_id>/`
 - `review` result may be returned in `status.json.data`
+- `review` should normally read from SQLite instead of fetching Google Tasks
+- `pull` is the primary command responsible for Google Tasks fetch and DB save
 - command-local artifacts such as `pull-backup.json` are optional and
   non-required
 - startup retry is allowed only before `accepted`

@@ -51,6 +51,7 @@ public sealed class PullCommandService
         var runtime = await _databaseRuntimeFactory.CreateForVaultAsync(request.Home, cancellationToken);
         var syncId = Guid.NewGuid().ToString();
         PullSyncRecord syncRecord;
+        var historySavedCount = 0;
 
         await using (var connection = await runtime.OpenConnectionAsync(cancellationToken))
         {
@@ -74,6 +75,16 @@ public sealed class PullCommandService
                 listName,
                 fetchedTasks,
                 exportedAt,
+                cancellationToken);
+
+            historySavedCount = await _tasksRepository.InsertTaskHistoriesAsync(
+                connection,
+                transaction,
+                syncId,
+                listName,
+                fetchedTasks,
+                exportedAt,
+                snapshotType: "pull",
                 cancellationToken);
 
             await _syncHistoriesRepository.CompleteAsync(
@@ -125,6 +136,8 @@ public sealed class PullCommandService
             includeCompleted,
             exportedAt,
             fetchedTasks.Count,
+            historySavedCount,
+            syncId,
             responseTasks,
             backupFile,
             syncRecord);
@@ -136,6 +149,8 @@ public sealed record PullCommandResult(
     bool IncludeCompleted,
     string ExportedAt,
     int TotalFetchedCount,
+    int HistorySavedCount,
+    string SyncHistoryId,
     IReadOnlyCollection<MyTask> ResponseTasks,
     string? BackupFile,
     PullSyncRecord SyncRecord);

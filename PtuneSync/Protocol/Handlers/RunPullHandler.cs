@@ -87,6 +87,8 @@ public sealed class RunPullHandler : IProtocolHandler
                         {
                             task_count = result.ResponseTasks.Count,
                             fetched_count = result.TotalFetchedCount,
+                            history_saved_count = result.HistorySavedCount,
+                            sync_history_id = result.SyncHistoryId,
                             backup_file = result.BackupFile,
                             accepted_count = result.SyncRecord.AcceptedCount,
                             added_count = result.SyncRecord.AddedCount,

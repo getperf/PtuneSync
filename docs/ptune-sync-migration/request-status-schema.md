@@ -95,7 +95,7 @@ It is the only public output file the caller needs to observe after launch.
 Examples:
 
 - `pull` summary counts
-- `review` exported review payload
+- `review` exported review payload from local SQLite history
 - optional artifact references such as `pull-backup.json`
 
 ## `phase`
@@ -150,13 +150,31 @@ Recommended types:
   "retry_count": 1,
   "instance_id": "main",
   "data": {
-    "date": "2026-03-28",
-    "list": "_Today",
-    "tasks": []
+    "query": {
+      "source": "local_db",
+      "date": "2026-03-28",
+      "list": "_Today"
+    },
+    "generated_sections": [
+      {
+        "kind": "today-summary",
+        "title": "Today's Review",
+        "content": "..."
+      }
+    ]
   },
   "error": null
 }
 ```
+
+Recommended command responsibility split:
+
+- `pull`
+  - fetches Google Tasks
+  - persists normalized task data into SQLite
+- `review`
+  - queries SQLite
+  - returns review-oriented payload in `status.json.data`
 
 ## Error Example
 

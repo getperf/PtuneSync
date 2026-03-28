@@ -2,12 +2,24 @@
 
 ## 1. Purpose
 
-`review` exports one day of task activity for reflection and downstream tools.
+`review` exports task activity for reflection and downstream tools.
 
 The command reads from the local SQLite3 history database instead of querying
-Google Tasks directly.
+Google Tasks directly. Google Tasks fetch and persistence are handled by
+`pull`.
 
 ## 2. Command Shape
+
+Responsibility split:
+
+- `pull`
+  - fetches Google Tasks
+  - normalizes the payload
+  - saves task history into SQLite
+- `review`
+  - queries SQLite
+  - returns daily or historical review payload
+  - does not require a live Google Tasks fetch in the normal path
 
 CLI form:
 
@@ -41,11 +53,19 @@ The review command uses:
 - `tasks` when supplemental latest state is needed
 
 It MUST NOT mutate synchronization state.
+It SHOULD NOT call Google Tasks directly in the normal path.
+
+The intended operational flow is:
+
+1. run `pull` to fetch and persist current task data
+2. run `review` to query the local DB and return review payload
+
+For historical lookup, `review` MAY run by itself without a preceding `pull`.
 
 The recommended selection rule is:
 
-1. find the latest successful `review` execution for the target `date` and
-   `list`
+1. find the latest successful `pull` or other persisted sync snapshot relevant
+   to the target `date` and `list`
 2. read its `sync_history_id`
 3. export the related `task_histories`
 
@@ -75,6 +95,12 @@ Example:
 }
 ```
 
+The payload may later include richer sections, for example:
+
+- `generated_sections`
+- `query`
+- `history_summary`
+
 If a later CLI mode needs an explicit file export, that should be treated as a
 CLI-specific convenience rather than part of the URI interop contract.
 
@@ -85,3 +111,5 @@ CLI-specific convenience rather than part of the URI interop contract.
 - If no tasks are found for the date, the command SHOULD still return a valid
   empty task array.
 - `date` is expected to align with `daily_note_key` in the local DB.
+- The command is intentionally lightweight compared with `pull`; it should be
+  safe to rerun against already-persisted history.
