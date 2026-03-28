@@ -21,6 +21,8 @@ while allowing the OAuth flow to remain stable across browser redirects.
 Observed constraints:
 
 - WinUI protocol activation may fail or arrive late during cold start
+- single-instance activation handling is more stable when owned by a custom
+  `Program.Main` before XAML app construction
 - callers already rely on startup retry until `accepted`
 - URI-triggered sync commands historically exited after completion
 - recent `run/*` handlers can leave a headless process alive without showing UI
@@ -134,6 +136,8 @@ The implementation should satisfy these guardrails:
 - `request_file` missing or unreadable must not be treated as a successful
   handled protocol run
 - protocol dispatch failure should report to `status.json` when possible
+- single-instance redirection and redirected activation subscription should be
+  initialized before `App` construction
 - leftover headless instances should not block GUI launch
 - residency decisions should be based on explicit mode/session state rather
   than on activation kind alone
@@ -146,7 +150,9 @@ The implementation should satisfy these guardrails:
 4. keep temporary residency only for OAuth login/callback flow
 5. on non-protocol activation, foreground or create a GUI window even if the
    process was previously headless
-6. keep caller-side startup retry unchanged until activation reliability is
+6. move single-instance setup and redirected activation handling into a custom
+   `Program.Main`
+7. keep caller-side startup retry unchanged until activation reliability is
    proven in production
 
 ## Non-Goals

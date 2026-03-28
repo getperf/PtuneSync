@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("pull", "review", "auth-status", "auth-login")]
+    [ValidateSet("launch", "ping", "pull", "review", "auth-status", "auth-login")]
     [string]$Command = "pull",
     [string]$VaultHome = "",
     [int]$TimeoutSec = 30,
@@ -38,6 +38,8 @@ New-Item -ItemType Directory -Force -Path $interopDir | Out-Null
 New-Item -ItemType Directory -Force -Path $effectiveVaultHome | Out-Null
 
 $requestCommand = switch ($Command) {
+    "launch" { "launch" }
+    "ping" { "ping" }
     "pull" { "pull" }
     "review" { "review" }
     "auth-status" { "auth-status" }
@@ -45,6 +47,8 @@ $requestCommand = switch ($Command) {
 }
 
 $uriCommand = switch ($Command) {
+    "launch" { "run/launch" }
+    "ping" { "run/ping" }
     "pull" { "run/pull" }
     "review" { "run/review" }
     "auth-status" { "run/auth/status" }

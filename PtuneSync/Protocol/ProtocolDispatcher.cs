@@ -18,6 +18,8 @@ public static class ProtocolDispatcher
         { "import", new Handlers.ImportHandler() },
         { "get-tasks-md", new Handlers.GetTasksMarkdownHandler() },
         { "auth", new Handlers.AuthHandler() },
+        { "run/launch", new Handlers.RunLaunchHandler() },
+        { "run/ping", new Handlers.RunPingHandler() },
         { "run/auth/status", new Handlers.RunAuthStatusHandler() },
         { "run/auth/login", new Handlers.RunAuthLoginHandler() },
         { "run/pull", new Handlers.RunPullHandler() },
