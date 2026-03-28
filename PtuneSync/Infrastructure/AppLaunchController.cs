@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using PtuneSync.Protocol;
+using PtuneSync.Infrastructure.Auth;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -41,7 +42,19 @@ public static class AppLaunchController
             if (uri.AbsolutePath.StartsWith("/oauth2redirect", StringComparison.OrdinalIgnoreCase))
             {
                 AppLog.Info("[Activation] OAuth redirect received.");
-                RedirectSignal.Set(uri.AbsoluteUri);
+                var state = System.Web.HttpUtility.ParseQueryString(uri.Query)["state"];
+                if (string.IsNullOrWhiteSpace(state))
+                {
+                    AppLog.Warn("[Activation] OAuth redirect missing state.");
+                    return true;
+                }
+
+                var sessionStore = new AuthSessionStore();
+                var saved = await sessionStore.TrySetRedirectByStateAcrossProfilesAsync(state, uri.AbsoluteUri);
+                if (!saved)
+                {
+                    AppLog.Warn("[Activation] OAuth redirect state was not matched to an auth session. state={State}", state);
+                }
                 return true;
             }
 

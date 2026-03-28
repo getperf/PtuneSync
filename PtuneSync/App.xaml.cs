@@ -69,9 +69,7 @@ public partial class App : Application
         var handledActivation = await AppLaunchController.HandleActivation(args);
         if (!handledActivation)
         {
-            AppLog.Warn("[App] OnAppActivated retrying with current AppInstance activation args");
-            var currentArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-            handledActivation = await AppLaunchController.HandleActivation(currentArgs);
+            AppLog.Warn("[App] OnAppActivated activation was not handled. Skip fallback redispatch to avoid replaying stale activation args.");
         }
 
         AppLog.Info("[App] OnAppActivated handledActivation={HandledActivation}", handledActivation);

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using PtuneSync.OAuth;
 using PtuneSync.Infrastructure;
+using PtuneSync.Infrastructure.Auth;
 using PtuneSync.Services;
 
 namespace PtuneSync.Protocol.Handlers;
@@ -58,10 +60,10 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
 
             try
             {
-                RedirectSignal.Reset();
                 var tokenWorkDir = TokenWorkDirResolver.Resolve(runRequest.Home, "RunAuthLoginHandler");
+                var profileKey = ProfilePathResolver.ResolveProfileKey(runRequest.Home);
                 AppConfigManager.RememberVaultHome(runRequest.Home);
-                AppLog.Info("[RunAuthLoginHandler] home={Home} tokenWorkDir={TokenWorkDir}", runRequest.Home, tokenWorkDir);
+                AppLog.Info("[RunAuthLoginHandler] home={Home} tokenWorkDir={TokenWorkDir} profileKey={ProfileKey}", runRequest.Home, tokenWorkDir, profileKey);
 
                 await RunStatusFileService.WriteAsync(
                     statusFile,
@@ -74,10 +76,12 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
                     requestId: requestId);
 
                 var config = AppConfigManager.Config.GoogleOAuth;
-                var storage = new OAuth.TokenStorage(tokenWorkDir);
+                var storage = new TokenStorage(tokenWorkDir);
                 storage.Delete();
 
-                var manager = new OAuth.OAuthManager(config, tokenWorkDir);
+                var sessionStore = new AuthSessionStore();
+                await sessionStore.CleanupExpiredAsync(profileKey, TimeSpan.FromDays(1));
+                var manager = new OAuthManager(config, tokenWorkDir, profileKey, requestNonce);
                 var authTask = manager.GetOrRefreshAsync();
                 var completedTask = await Task.WhenAny(authTask, Task.Delay(AuthLoginTimeout));
                 if (completedTask != authTask)
@@ -127,7 +131,6 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
         }
         finally
         {
-            RedirectSignal.Reset();
             ActivationSessionManager.End(SessionNames.RunAuthLogin);
         }
     }
