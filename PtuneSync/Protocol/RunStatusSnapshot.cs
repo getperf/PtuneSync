@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace PtuneSync.Protocol;
@@ -19,6 +20,12 @@ public sealed class RunStatusSnapshot
     [JsonPropertyName("status")]
     public string Status { get; set; } = "";
 
+    [JsonPropertyName("timestamp")]
+    public string Timestamp { get; set; } = "";
+
+    [JsonPropertyName("updated_at")]
+    public string UpdatedAt { get; set; } = "";
+
     public string? ResolvePublicRequestIdentity()
     {
         if (!string.IsNullOrWhiteSpace(RequestNonce))
@@ -27,5 +34,21 @@ public sealed class RunStatusSnapshot
         }
 
         return string.IsNullOrWhiteSpace(RequestId) ? null : RequestId;
+    }
+
+    public DateTimeOffset? ResolveUpdatedAt()
+    {
+        var value = !string.IsNullOrWhiteSpace(UpdatedAt)
+            ? UpdatedAt
+            : Timestamp;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return DateTimeOffset.TryParse(value, out var parsed)
+            ? parsed
+            : null;
     }
 }

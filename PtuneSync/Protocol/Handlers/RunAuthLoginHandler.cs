@@ -8,6 +8,8 @@ namespace PtuneSync.Protocol.Handlers;
 
 public sealed class RunAuthLoginHandler : IProtocolHandler
 {
+    private static readonly TimeSpan AuthLoginTimeout = TimeSpan.FromSeconds(90);
+
     public async Task ExecuteAsync(ProtocolRequest request)
     {
         ActivationSessionManager.Begin(SessionNames.RunAuthLogin);
@@ -56,6 +58,7 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
 
             try
             {
+                RedirectSignal.Reset();
                 var tokenWorkDir = TokenWorkDirResolver.Resolve(runRequest.Home, "RunAuthLoginHandler");
                 AppConfigManager.RememberVaultHome(runRequest.Home);
                 AppLog.Info("[RunAuthLoginHandler] home={Home} tokenWorkDir={TokenWorkDir}", runRequest.Home, tokenWorkDir);
@@ -75,7 +78,14 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
                 storage.Delete();
 
                 var manager = new OAuth.OAuthManager(config, tokenWorkDir);
-                var token = await manager.GetOrRefreshAsync();
+                var authTask = manager.GetOrRefreshAsync();
+                var completedTask = await Task.WhenAny(authTask, Task.Delay(AuthLoginTimeout));
+                if (completedTask != authTask)
+                {
+                    throw new TimeoutException("auth-login timed out while waiting for browser authentication");
+                }
+
+                var token = await authTask;
                 var authenticated = token.ExpiresAt > DateTime.Now;
 
                 await RunStatusFileService.WriteAsync(
@@ -117,6 +127,7 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
         }
         finally
         {
+            RedirectSignal.Reset();
             ActivationSessionManager.End(SessionNames.RunAuthLogin);
         }
     }

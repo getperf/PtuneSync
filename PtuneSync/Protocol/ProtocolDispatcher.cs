@@ -8,6 +8,7 @@ namespace PtuneSync.Protocol;
 
 public static class ProtocolDispatcher
 {
+    private static readonly TimeSpan AuthLoginStaleTimeout = TimeSpan.FromSeconds(90);
     private static readonly ConcurrentDictionary<string, byte> _activeRunKeys = new();
 
     private static readonly Dictionary<string, IProtocolHandler> _handlers = new()
@@ -149,6 +150,16 @@ public static class ProtocolDispatcher
             if (string.Equals(snapshot.Phase, "accepted", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(snapshot.Phase, "running", StringComparison.OrdinalIgnoreCase))
             {
+                if (CanRetryStaleAuthLogin(request.Command, snapshot))
+                {
+                    AppLog.Warn(
+                        "[ProtocolDispatcher] Allow retry for stale auth-login request. command={Command} statusCommand={StatusCommand} updatedAt={UpdatedAt}",
+                        request.Command,
+                        snapshot.Command,
+                        snapshot.UpdatedAt);
+                    return RunDispatchGuard.EnabledFor(runKey);
+                }
+
                 var message = isSameLogicalRequest
                     ? $"already {snapshot.Phase.ToLowerInvariant()}"
                     : $"busy with {snapshot.Phase.ToLowerInvariant()} request";
@@ -166,6 +177,27 @@ public static class ProtocolDispatcher
     private static string BuildRunKey(string statusFile, string requestIdentity)
     {
         return $"{statusFile.Trim().ToLowerInvariant()}::{requestIdentity}";
+    }
+
+    private static bool CanRetryStaleAuthLogin(string requestCommand, RunStatusSnapshot snapshot)
+    {
+        if (!string.Equals(requestCommand, "run/auth/login", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (!string.Equals(snapshot.Command, "auth-login", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var updatedAt = snapshot.ResolveUpdatedAt();
+        if (updatedAt == null)
+        {
+            return false;
+        }
+
+        return DateTimeOffset.UtcNow - updatedAt.Value >= AuthLoginStaleTimeout;
     }
 
     private readonly record struct RunDispatchGuard(bool Enabled, string? RunKey, string? CompletedOrActiveMessage)
