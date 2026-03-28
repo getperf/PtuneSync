@@ -31,6 +31,12 @@ public class MyTask
     [JsonPropertyName("pomodoro")]
     public PomodoroInfo? Pomodoro { get; set; }
 
+    [JsonPropertyName("goal")]
+    public string? Goal { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
+
     [JsonPropertyName("reviewFlags")]
     public HashSet<string>? ReviewFlags { get; set; }
     
@@ -140,6 +146,21 @@ public class MyTask
             lines.Add($"🍅planned={Pomodoro.Planned}");
             if (Pomodoro.Actual.HasValue)
                 lines.Add($"actual={Pomodoro.Actual}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Goal))
+            lines.Add($"goal={Goal}");
+
+        if (Tags is { Count: > 0 })
+        {
+            var normalizedTags = Tags
+                .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(tag => tag.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (normalizedTags.Count > 0)
+                lines.Add($"tags={string.Join(",", normalizedTags)}");
         }
 
         if (!string.IsNullOrWhiteSpace(Started))

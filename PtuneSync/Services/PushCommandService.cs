@@ -304,6 +304,8 @@ public sealed class PushCommandService
             Started = source.Started,
             Completed = source.Completed,
             Note = source.Note,
+            Goal = source.Goal,
+            Tags = source.Tags is { Count: > 0 } ? new List<string>(source.Tags) : null,
             ReviewFlags = source.ReviewFlags,
         };
 

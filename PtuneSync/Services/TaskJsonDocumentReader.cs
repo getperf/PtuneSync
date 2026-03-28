@@ -34,6 +34,8 @@ public static class TaskJsonDocumentReader
                 Started = task.Started,
                 Completed = task.Completed,
                 Note = task.Note,
+                Goal = task.Goal,
+                Tags = task.Tags is { Count: > 0 } ? new List<string>(task.Tags) : null,
                 ReviewFlags = task.ReviewFlags is { Count: > 0 } ? new HashSet<string>(task.ReviewFlags) : null,
             });
         }
@@ -90,6 +92,12 @@ public sealed class TaskJsonTask
 
     [JsonPropertyName("note")]
     public string? Note { get; set; }
+
+    [JsonPropertyName("goal")]
+    public string? Goal { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
 
     [JsonPropertyName("review_flags")]
     public List<string>? ReviewFlags { get; set; }

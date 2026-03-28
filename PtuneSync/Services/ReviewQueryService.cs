@@ -113,6 +113,8 @@ public sealed class ReviewQueryService
                 pomodoro_planned,
                 pomodoro_actual,
                 review_flags_json,
+                goal,
+                tags_json,
                 google_updated_at,
                 deleted_at
             FROM task_histories
@@ -137,8 +139,10 @@ public sealed class ReviewQueryService
                 Completed = reader.IsDBNull(5) ? null : reader.GetString(5),
                 Pomodoro = ReadPomodoro(reader),
                 ReviewFlags = ReadReviewFlags(reader, 8),
-                Updated = reader.IsDBNull(9) ? null : reader.GetString(9),
-                Deleted = !reader.IsDBNull(10),
+                Goal = reader.IsDBNull(9) ? null : reader.GetString(9),
+                Tags = ReadStringList(reader, 10),
+                Updated = reader.IsDBNull(11) ? null : reader.GetString(11),
+                Deleted = !reader.IsDBNull(12),
             });
         }
 
@@ -170,6 +174,24 @@ public sealed class ReviewQueryService
         {
             var flags = JsonSerializer.Deserialize<HashSet<string>>(reader.GetString(ordinal));
             return flags is { Count: > 0 } ? flags : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static List<string>? ReadStringList(SqliteDataReader reader, int ordinal)
+    {
+        if (reader.IsDBNull(ordinal))
+        {
+            return null;
+        }
+
+        try
+        {
+            var values = JsonSerializer.Deserialize<List<string>>(reader.GetString(ordinal));
+            return values is { Count: > 0 } ? values : null;
         }
         catch
         {

@@ -96,9 +96,11 @@ public static class TaskDiffAnalyzer
             && string.Equals(left.Started, right.Started, StringComparison.Ordinal)
             && string.Equals(left.Completed, right.Completed, StringComparison.Ordinal)
             && string.Equals(left.Note ?? string.Empty, right.Note ?? string.Empty, StringComparison.Ordinal)
+            && string.Equals(left.Goal ?? string.Empty, right.Goal ?? string.Empty, StringComparison.Ordinal)
             && Equals(left.Pomodoro?.Planned, right.Pomodoro?.Planned)
             && Equals(left.Pomodoro?.Actual, right.Pomodoro?.Actual)
-            && SetEquals(left.ReviewFlags, right.ReviewFlags);
+            && SetEquals(left.ReviewFlags, right.ReviewFlags)
+            && SetEquals(left.Tags, right.Tags);
     }
 
     private static bool SetEquals(

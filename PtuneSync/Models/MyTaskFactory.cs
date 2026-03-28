@@ -19,6 +19,8 @@ public static class MyTaskFactory
         var reviewFlags = ReviewFlagNotesDecoder.Decode(notes);
 
         var pomodoro = ParsePomodoroInfo(notes);
+        var goal = ExtractScalar("goal", notes);
+        var tags = ExtractCsv("tags", notes);
         var started = ExtractTimestamp("started", notes);
         var completedApi = ParseDate(GetOpt("completed"));
         var due = ParseDate(GetOpt("due"));
@@ -33,6 +35,8 @@ public static class MyTaskFactory
             TaskListId = taskListId,
             Note = ExtractNoteBody(notes),
             ReviewFlags = reviewFlags.Count > 0 ? reviewFlags : null,
+            Goal = goal,
+            Tags = tags.Count > 0 ? tags : null,
             Parent = GetOpt("parent"),
             Position = GetOpt("position"),
             Due = due,
@@ -45,15 +49,33 @@ public static class MyTaskFactory
 
     private static string? ExtractTimestamp(string key, string? note)
     {
+        return ExtractScalar(key, note);
+    }
+
+    private static string? ExtractScalar(string key, string? note)
+    {
         if (string.IsNullOrEmpty(note)) return null;
         foreach (var line in note.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
         {
-            var match = Regex.Match(line.Trim(), $@"^{key}=(.+)$");
+            var match = Regex.Match(line.Trim(), $@"^{Regex.Escape(key)}=(.+)$");
             if (match.Success)
                 return match.Groups[1].Value.Trim();
         }
 
         return null;
+    }
+
+    private static List<string> ExtractCsv(string key, string? note)
+    {
+        var raw = ExtractScalar(key, note);
+        if (string.IsNullOrWhiteSpace(raw))
+            return new List<string>();
+
+        return raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => part.Trim())
+            .Where(part => part.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
     }
 
     private static string? ExtractNoteBody(string? note)
@@ -112,6 +134,8 @@ public static class MyTaskFactory
 
         return trimmed.StartsWith("🍅planned=", StringComparison.Ordinal) ||
                trimmed.StartsWith("actual=", StringComparison.Ordinal) ||
+               trimmed.StartsWith("goal=", StringComparison.Ordinal) ||
+               trimmed.StartsWith("tags=", StringComparison.Ordinal) ||
                trimmed.StartsWith("started=", StringComparison.Ordinal) ||
                trimmed.StartsWith("reviewFlags=", StringComparison.Ordinal);
     }

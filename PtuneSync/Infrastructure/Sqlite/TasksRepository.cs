@@ -122,8 +122,8 @@ public sealed class TasksRepository
             command.Parameters.AddWithValue("$pomodoroPlanned", ToDbValue(task.Pomodoro?.Planned));
             command.Parameters.AddWithValue("$pomodoroActual", ToDbValue(task.Pomodoro?.Actual));
             command.Parameters.AddWithValue("$reviewFlagsJson", ToDbValue(Serialize(task.ReviewFlags)));
-            command.Parameters.AddWithValue("$goal", DBNull.Value);
-            command.Parameters.AddWithValue("$tagsJson", DBNull.Value);
+            command.Parameters.AddWithValue("$goal", ToDbValue(task.Goal));
+            command.Parameters.AddWithValue("$tagsJson", ToDbValue(Serialize(task.Tags)));
             command.Parameters.AddWithValue("$googleUpdatedAt", ToDbValue(task.Updated));
             command.Parameters.AddWithValue("$lastPulledAt", pulledAt);
             command.Parameters.AddWithValue("$deletedAt", ToDbValue(task.Deleted ? pulledAt : null));
@@ -235,8 +235,8 @@ public sealed class TasksRepository
             command.Parameters.AddWithValue("$pomodoroPlanned", ToDbValue(task.Pomodoro?.Planned));
             command.Parameters.AddWithValue("$pomodoroActual", ToDbValue(task.Pomodoro?.Actual));
             command.Parameters.AddWithValue("$reviewFlagsJson", ToDbValue(Serialize(task.ReviewFlags)));
-            command.Parameters.AddWithValue("$goal", DBNull.Value);
-            command.Parameters.AddWithValue("$tagsJson", DBNull.Value);
+            command.Parameters.AddWithValue("$goal", ToDbValue(task.Goal));
+            command.Parameters.AddWithValue("$tagsJson", ToDbValue(Serialize(task.Tags)));
             command.Parameters.AddWithValue("$snapshotAt", snapshotAt);
             command.Parameters.AddWithValue("$snapshotType", snapshotType);
             command.Parameters.AddWithValue("$syncHistoryId", syncHistoryId);
@@ -350,8 +350,8 @@ public sealed class TasksRepository
             command.Parameters.AddWithValue("$pomodoroPlanned", ToDbValue(task.Pomodoro?.Planned));
             command.Parameters.AddWithValue("$pomodoroActual", ToDbValue(task.Pomodoro?.Actual));
             command.Parameters.AddWithValue("$reviewFlagsJson", ToDbValue(Serialize(task.ReviewFlags)));
-            command.Parameters.AddWithValue("$goal", DBNull.Value);
-            command.Parameters.AddWithValue("$tagsJson", DBNull.Value);
+            command.Parameters.AddWithValue("$goal", ToDbValue(task.Goal));
+            command.Parameters.AddWithValue("$tagsJson", ToDbValue(Serialize(task.Tags)));
             command.Parameters.AddWithValue("$googleUpdatedAt", ToDbValue(task.Updated));
             command.Parameters.AddWithValue("$lastPushedAt", pushedAt);
             command.Parameters.AddWithValue("$deletedAt", ToDbValue(task.Deleted ? pushedAt : null));
