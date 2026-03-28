@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PtuneSync.Models;
@@ -19,7 +20,6 @@ public static class MyTaskFactory
 
         var pomodoro = ParsePomodoroInfo(notes);
         var started = ExtractTimestamp("started", notes);
-        var completedNote = ExtractTimestamp("completed", notes);
         var completedApi = ParseDate(GetOpt("completed"));
         var due = ParseDate(GetOpt("due"));
         var updated = ParseDate(GetOpt("updated"));
@@ -36,7 +36,7 @@ public static class MyTaskFactory
             Parent = GetOpt("parent"),
             Position = GetOpt("position"),
             Due = due,
-            Completed = completedNote ?? completedApi,
+            Completed = completedApi,
             Updated = updated,
             Started = started,
             Deleted = task.ContainsKey("deleted") && task["deleted"] is bool b && b
@@ -46,42 +46,74 @@ public static class MyTaskFactory
     private static string? ExtractTimestamp(string key, string? note)
     {
         if (string.IsNullOrEmpty(note)) return null;
-        var match = Regex.Match(note, $@"{key}=([^\s]+)");
-        return match.Success ? match.Groups[1].Value : null;
+        foreach (var line in note.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+        {
+            var match = Regex.Match(line.Trim(), $@"^{key}=(.+)$");
+            if (match.Success)
+                return match.Groups[1].Value.Trim();
+        }
+
+        return null;
     }
 
     private static string? ExtractNoteBody(string? note)
     {
         if (string.IsNullOrEmpty(note)) return null;
-        var cleaned = Regex.Replace(note, @"🍅x\d+", "")
-            .Replace("✅x", "✅x") // no-op but keeps consistency
-            .Replace("✅x", "✅x")
-            .Replace("✅x", "✅x");
-        cleaned = Regex.Replace(cleaned, @"✅x[\d.]+", "");
-        cleaned = Regex.Replace(cleaned, @"started=[^\s]+", "");
-        cleaned = Regex.Replace(cleaned, @"completed=[^\s]+", "");
-        cleaned = cleaned.Trim();
-        return cleaned == "" ? null : cleaned;
+
+        var bodyLines = note
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Select(line => line.TrimEnd())
+            .Where(line => !IsMetadataLine(line))
+            .ToList();
+
+        if (bodyLines.Count == 0)
+            return null;
+
+        var cleaned = string.Join(Environment.NewLine, bodyLines).Trim();
+        return cleaned.Length == 0 ? null : cleaned;
     }
 
     private static PomodoroInfo? ParsePomodoroInfo(string? note)
     {
         if (string.IsNullOrEmpty(note)) return null;
-        var planned = ExtractInt(note, @"🍅x(\d+)");
-        var actual = ExtractFloat(note, @"✅x([\d.]+)");
+        var planned = ExtractInt(note, @"^🍅planned=(\d+)$");
+        var actual = ExtractFloat(note, @"^actual=([\d.]+)$");
         return new PomodoroInfo(planned ?? 0, actual);
     }
 
     private static int? ExtractInt(string text, string pattern)
     {
-        var match = Regex.Match(text, pattern);
-        return match.Success ? int.Parse(match.Groups[1].Value) : null;
+        foreach (var line in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+        {
+            var match = Regex.Match(line.Trim(), pattern);
+            if (match.Success)
+                return int.Parse(match.Groups[1].Value);
+        }
+
+        return null;
     }
 
     private static double? ExtractFloat(string text, string pattern)
     {
-        var match = Regex.Match(text, pattern);
-        return match.Success ? double.Parse(match.Groups[1].Value) : null;
+        foreach (var line in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+        {
+            var match = Regex.Match(line.Trim(), pattern);
+            if (match.Success)
+                return double.Parse(match.Groups[1].Value);
+        }
+
+        return null;
+    }
+
+    private static bool IsMetadataLine(string line)
+    {
+        var trimmed = line.Trim();
+        if (trimmed.Length == 0) return false;
+
+        return trimmed.StartsWith("🍅planned=", StringComparison.Ordinal) ||
+               trimmed.StartsWith("actual=", StringComparison.Ordinal) ||
+               trimmed.StartsWith("started=", StringComparison.Ordinal) ||
+               trimmed.StartsWith("reviewFlags=", StringComparison.Ordinal);
     }
 
     private static string? ParseDate(string? dateStr)

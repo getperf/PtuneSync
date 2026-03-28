@@ -7,7 +7,7 @@ namespace PtuneSync.Models;
 public static class ReviewFlagNotesEncoder
 {
     /// <summary>
-    /// reviewFlags → "#ptune:review=flag1,flag2"
+    /// reviewFlags → "reviewFlags=flag1,flag2"
     /// 空の場合は null
     /// </summary>
     public static string? Encode(IEnumerable<string> flags)
@@ -19,6 +19,6 @@ public static class ReviewFlagNotesEncoder
 
         if (uniq.Count == 0) return null;
 
-        return $"#ptune:review={string.Join(",", uniq)}";
+        return $"reviewFlags={string.Join(",", uniq)}";
     }
 }

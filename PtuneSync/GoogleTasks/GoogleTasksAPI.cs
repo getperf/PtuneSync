@@ -245,18 +245,10 @@ public class GoogleTasksAPI
 
     private static object BuildTaskBody(MyTask task, bool includeId)
     {
-        var notesParts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(task.Note)) notesParts.Add(task.Note);
-        if (task.Pomodoro != null && task.Pomodoro.Planned > 0)
-        {
-            var s = $"🍅x{task.Pomodoro.Planned}";
-            if (task.Pomodoro.Actual.HasValue) s += $" ✅x{task.Pomodoro.Actual}";
-            notesParts.Add(s);
-        }
         var body = new Dictionary<string, object?>
         {
             ["title"] = task.Title,
-            ["notes"] = string.Join(' ', notesParts).Trim(),
+            ["notes"] = task.BuildNotesPayload(),
             ["status"] = string.IsNullOrEmpty(task.Status) ? "needsAction" : task.Status
         };
         if (includeId && !string.IsNullOrEmpty(task.Id)) body["id"] = task.Id;

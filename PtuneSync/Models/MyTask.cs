@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace PtuneSync.Models;
@@ -101,22 +102,10 @@ public class MyTask
 
     public Dictionary<string, object> ToApiData()
     {
-        var notes = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Note))
-            notes.Add(Note);
-
-        if (Pomodoro != null)
-        {
-            var tomato = $"🍅x{Pomodoro.Planned}";
-            if (Pomodoro.Actual.HasValue)
-                tomato += $" ✅x{Pomodoro.Actual}";
-            notes.Add(tomato);
-        }
-
         var body = new Dictionary<string, object>
         {
             ["title"] = Title,
-            ["notes"] = string.Join(" ", notes).Trim(),
+            ["notes"] = BuildNotesPayload(),
             ["status"] = Status
         };
 
@@ -125,6 +114,38 @@ public class MyTask
         if (!string.IsNullOrEmpty(Due)) body["due"] = Due;
 
         return body;
+    }
+
+    public string BuildNotesPayload()
+    {
+        var lines = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(Note))
+        {
+            lines.AddRange(Note
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+                .Select(line => line.TrimEnd())
+                .Where(line => !string.IsNullOrWhiteSpace(line)));
+        }
+
+        if (ReviewFlags is { Count: > 0 })
+        {
+            var encodedFlags = ReviewFlagNotesEncoder.Encode(ReviewFlags);
+            if (!string.IsNullOrWhiteSpace(encodedFlags))
+                lines.Add(encodedFlags);
+        }
+
+        if (Pomodoro != null && Pomodoro.Planned > 0)
+        {
+            lines.Add($"🍅planned={Pomodoro.Planned}");
+            if (Pomodoro.Actual.HasValue)
+                lines.Add($"actual={Pomodoro.Actual}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Started))
+            lines.Add($"started={Started}");
+
+        return string.Join(Environment.NewLine, lines).Trim();
     }
 
     public MyTask CloneWithoutActuals()

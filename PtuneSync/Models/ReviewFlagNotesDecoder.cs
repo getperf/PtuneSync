@@ -7,7 +7,7 @@ namespace PtuneSync.Models;
 
 public static class ReviewFlagNotesDecoder
 {
-    private static readonly Regex Pattern = new(@"#ptune:review=([^\s]+)",
+    private static readonly Regex Pattern = new(@"^reviewFlags=(.+)$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
@@ -19,14 +19,17 @@ public static class ReviewFlagNotesDecoder
         var result = new HashSet<string>();
         if (string.IsNullOrWhiteSpace(notes)) return result;
 
-        var m = Pattern.Match(notes);
-        if (!m.Success) return result;
-
-        var raw = m.Groups[1].Value;
-        foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in notes.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
         {
-            var s = part.Trim();
-            if (s.Length > 0) result.Add(s);
+            var m = Pattern.Match(line.Trim());
+            if (!m.Success) continue;
+
+            var raw = m.Groups[1].Value;
+            foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var s = part.Trim();
+                if (s.Length > 0) result.Add(s);
+            }
         }
 
         return result;
