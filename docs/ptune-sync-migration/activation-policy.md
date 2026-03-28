@@ -75,7 +75,7 @@ Policy:
 2. caller launches URI
 3. caller waits for `status.json.phase == accepted`
 4. if `accepted` is not observed within the startup timeout, caller relaunches
-   the same URI with the same `request_id`
+   the same URI with the same `request_nonce`
 5. caller stops retry once `accepted`, `running`, or `completed` is observed
 
 Implications:

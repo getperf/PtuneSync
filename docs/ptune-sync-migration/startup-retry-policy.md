@@ -9,7 +9,7 @@ It is not the primary correctness mechanism.
 The primary correctness mechanisms are:
 - valid URI activation handling in WinUI
 - request-based file contract
-- `request_id`-based idempotency
+- `request_nonce`-based idempotency
 
 Retry exists to reduce the impact of startup detection failures.
 
@@ -31,7 +31,7 @@ Retry SHOULD NOT be used after:
 2. caller launches URI
 3. caller waits for `accepted`
 4. if not accepted within the startup timeout, caller relaunches the same request
-5. caller reuses the same `request_id`
+5. caller reuses the same `request_nonce`
 6. after `accepted`, caller only waits for completion
 
 ## Recommended Limits
@@ -43,17 +43,21 @@ Retry SHOULD NOT be used after:
 
 ## Required Safety Rule
 
-Retry MUST reuse the same `request_id`.
+Retry MUST reuse the same `request_nonce`.
 
 This is required so the WinUI dispatcher can treat the second URI activation as
 an already-known request instead of a second execution.
 
 ## Required Dispatcher Behavior
 
-If the same `request_id` is received multiple times:
+If the same `(status_file, request_nonce)` is received multiple times:
 - if request is already `accepted` or `running`, do not start a second run
 - if request is already `completed`, do not re-run
 - if request is new, accept and start execution
+
+If a different `request_nonce` is received while the same `status.json` still
+shows `accepted` or `running`:
+- do not start a second run in the same interop directory
 
 ## Non-Goals
 

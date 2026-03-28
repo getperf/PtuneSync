@@ -8,22 +8,26 @@ URI handling MUST map into the same execution core used by direct CLI launch.
 ## 2. URI Format
 
 ```text
-ptunesync://<command>/<subcommand>?param=value
+ptunesync://<command>?request_file=<absolute-path>
 ```
 
-Commands without subcommands may omit the subcommand segment.
+A unified form is also allowed:
+
+```text
+ptunesync://run?request_file=<absolute-path>
+```
 
 ## 3. Examples
 
 ```text
-ptunesync://launch?home=C:\workspace
-ptunesync://auth/status?home=C:\workspace
-ptunesync://auth/login?home=C:\workspace
-ptunesync://auth/callback?home=C:\workspace&code=...&state=...
-ptunesync://pull?home=C:\workspace&list=_Today
-ptunesync://diff?home=C:\workspace&input=tasks.json&list=_Today
-ptunesync://push?home=C:\workspace&input=tasks.json
-ptunesync://review?home=C:\workspace&date=2026-03-22&output=review.json
+ptunesync://launch
+ptunesync://auth/status?request_file=C:\workspace\interop\request.json
+ptunesync://auth/login?request_file=C:\workspace\interop\request.json
+ptunesync://auth/callback?code=...&state=...
+ptunesync://pull?request_file=C:\workspace\interop\request.json
+ptunesync://diff?request_file=C:\workspace\interop\request.json
+ptunesync://push?request_file=C:\workspace\interop\request.json
+ptunesync://review?request_file=C:\workspace\interop\request.json
 ```
 
 ## 4. URI to Command Mapping
@@ -41,10 +45,16 @@ ptunesync://review?home=C:\workspace&date=2026-03-22&output=review.json
 
 ## 5. Result Handling
 
-URI-triggered execution SHOULD write the command result to:
+URI-triggered execution SHOULD read input from:
 
 ```text
-<home>\status.json
+<interop>\request.json
+```
+
+and SHOULD write the command result to:
+
+```text
+<interop>\status.json
 ```
 
 Clients that use URI launch MUST read `status.json` instead of relying on
@@ -53,5 +63,8 @@ console output.
 ## 6. Notes
 
 - URI launch remains supported for WinUI3 and external tool integration.
-- Direct CLI execution remains supported for testing, debugging, and automation.
+- Direct CLI execution remains supported for testing, debugging, and
+  automation.
 - Both entrypoints MUST produce equivalent command behavior.
+- `request_id` and per-run directory naming are not part of the public URI
+  contract.

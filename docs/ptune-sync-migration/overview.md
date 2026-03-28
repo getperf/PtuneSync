@@ -16,12 +16,12 @@ They are intentionally stored outside archived project copies so that:
 
 - `winui-uri-run-contract.md`
   - target run contract for URI-based WinUI execution
-  - covers `request_id`, `request.json`, `status.json`, run directories,
-    startup retry, dispatcher idempotency, and cleanup direction
+  - covers `request.json`, `status.json`, one-directory interop, startup retry,
+    and dispatcher idempotency
 - `contract-finalization.md`
   - concrete decision draft for Phase 1 contract finalization
-  - fixes the first proposal for request/status fields, request identity,
-    lifecycle values, retry rules, and cleanup rules
+  - fixes the current target for request/status fields, public request
+    identity, lifecycle values, retry rules, and one-directory policy
 - `protocol-dispatcher.md`
   - WinUI-side activation, idempotency, and dispatch responsibilities
 - `request-status-schema.md`
@@ -32,7 +32,7 @@ They are intentionally stored outside archived project copies so that:
   - policy for when PtuneSync should stay resident, when it should exit, and
     how GUI launch should interact with a headless runner instance
 - `cleanup-policy.md`
-  - focused discussion of per-run directory retention and cleanup behavior
+  - focused discussion of cleanup behavior
 - `storage-layout-policy.md`
   - recommended split between caller-visible interop files and PtuneSync
     private storage
@@ -58,6 +58,7 @@ They are intentionally stored outside archived project copies so that:
 These documents currently focus on:
 - URI launch for all external commands
 - file-based request / status exchange
+- one caller-visible interop directory
 - WinUI migration safety concerns
 - Obsidian-side monitoring behavior
 - storage ownership boundaries between caller and PtuneSync

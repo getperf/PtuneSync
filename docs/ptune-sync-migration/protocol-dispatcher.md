@@ -6,21 +6,22 @@ This document describes the recommended responsibilities and state handling for
 `ProtocolDispatcher` in the WinUI-based PtuneSync implementation.
 
 The dispatcher is the WinUI-side entry point that receives URI activation,
-resolves the request file, and ensures that duplicate URI activations do not
-cause duplicate command execution.
+loads `request.json`, and ensures that duplicate URI activations do not cause
+duplicate command execution.
 
 ## Responsibilities
 
 `ProtocolDispatcher` SHOULD be responsible for:
 
 - receiving URI activation
-- parsing `request_id` and `request_file`
+- parsing `request_file`
 - loading `request.json`
 - validating the request envelope
-- deciding whether the request is new or already in progress
+- deciding whether the request is a retry, a new request, or a conflicting
+  in-progress request
 - updating `status.json` to `accepted`
 - dispatching the internal command runner
-- preventing duplicate execution for the same `request_id`
+- preventing duplicate execution for the same `(status_file, request_nonce)`
 
 `ProtocolDispatcher` SHOULD NOT be responsible for:
 
@@ -35,11 +36,11 @@ cause duplicate command execution.
 Protocol activation
   -> parse URI
   -> resolve request.json
-  -> validate request_id
-  -> locate run directory
+  -> validate request_nonce
+  -> resolve status.json
   -> read existing status.json if present
-  -> decide whether request is new / running / completed
-  -> if new: write accepted
+  -> decide whether request is retry / new / conflicting
+  -> if accepted as new: write accepted
   -> invoke internal command runner
 ```
 
@@ -48,14 +49,14 @@ Protocol activation
 Recommended URI forms:
 
 ```text
-ptune-sync://run?request_id=<id>&request_file=<path>
+ptune-sync://run?request_file=<path>
 ```
 
 or
 
 ```text
-ptune-sync://push?request_id=<id>&request_file=<path>
-ptune-sync://auth-login?request_id=<id>&request_file=<path>
+ptune-sync://push?request_file=<path>
+ptune-sync://auth-login?request_file=<path>
 ```
 
 The dispatcher SHOULD normalize both styles to the same internal command model.
@@ -66,16 +67,17 @@ The dispatcher SHOULD reject the request when:
 
 - `request_file` is missing
 - `request.json` cannot be read
-- `request_id` is missing
-- `request_id` in URI and `request.json` do not match
+- `request_nonce` is missing
 - `command` is unsupported
-- `workspace.status_file` is missing
+- `status_file` is missing
 
-Validation failure SHOULD result in writing an error `status.json` when possible.
+Validation failure SHOULD result in writing an error `status.json` when
+possible.
 
 ## Idempotency Rules
 
-The dispatcher MUST treat `request_id` as the logical execution key.
+The dispatcher MUST treat `(status_file, request_nonce)` as the public logical
+execution key.
 
 Recommended behavior:
 
@@ -85,19 +87,21 @@ Recommended behavior:
 - write `accepted`
 - start execution
 
-### Case 2. Existing `status.json` is `accepted` or `running`
+### Case 2. Existing `status.json` has the same `request_nonce`
 
-- do not start a second execution
-- keep the current run alive
-- optionally refresh timestamp / heartbeat if needed
+- if phase is `accepted` or `running`, do not start a second execution
+- if phase is `completed`, do not re-run
 
-### Case 3. Existing `status.json` is `completed`
+This is the startup retry case.
 
-- do not re-run
-- keep existing final result
+### Case 3. Existing `status.json` has a different `request_nonce`
 
-This rule is required because the caller may relaunch the same URI during
-startup retry.
+- if phase is `completed`, accept the new request and overwrite the file
+- if phase is `accepted` or `running`, do not start a second execution in the
+  same interop directory
+
+This preserves one-active-request semantics for one caller-visible interop
+directory.
 
 ## Recommended Status Transition
 
@@ -117,11 +121,11 @@ Recommended minimum accepted write:
 ```json
 {
   "schema_version": 1,
-  "request_id": "20260322T080000Z-a1b2c3",
+  "request_nonce": "20260328T094500123Z-01",
   "command": "push",
   "phase": "accepted",
   "status": "running",
-  "timestamp": "2026-03-22T08:00:01Z",
+  "updated_at": "2026-03-28T09:45:01Z",
   "message": "dispatcher accepted request",
   "retry_count": 0,
   "instance_id": "main",
@@ -158,7 +162,7 @@ If request parsing fails before `status.json` is known:
 
 If `status.json` path is known:
 - write `completed/error`
-- include `CONTRACT_ERROR` or `SYSTEM_ERROR`
+- include `CONTRACT_ERROR`, `BUSY`, or `SYSTEM_ERROR`
 
 ## Threading / Activation Notes
 

@@ -22,19 +22,20 @@ It is intended to be used after reading:
 - Confirm required vs optional fields
 - Confirm `schema_version` handling rules
 - Confirm unknown-field tolerance rules
+- Confirm `review` result payload goes into `status.json.data`
 
 ### 1.2 Request Identity
 
-- Define the final `request_id` generation format
-- Define when a new `request_id` is created
-- Define retry reuse rules for the same `request_id`
-- Define whether `request_id` is also part of URI query validation
+- Define the final `request_nonce` generation format
+- Define when a new `request_nonce` is created
+- Define retry reuse rules for the same `request_nonce`
+- Define whether any URI-side identity other than `request_file` is needed
 
 ### 1.3 Lifecycle Rules
 
 - Fix the final `phase` values
 - Fix the final `status` values
-- Confirm the accepted → running → completed transition rules
+- Confirm the accepted -> running -> completed transition rules
 - Confirm which fields must be updated on every `status.json` write
 
 ### 1.4 Retry Contract
@@ -44,31 +45,29 @@ It is intended to be used after reading:
 - Confirm the exact stop condition for retry
 - Confirm that retry is limited to startup acknowledgement only
 
-### 1.5 Cleanup Contract
+### 1.5 Concurrency Contract
 
-- Fix retention policy for old runs
-- Fix deletion eligibility rules
-- Fix failure handling policy for file-lock deletion failures
+- Confirm one interop directory supports only one active request
+- Confirm different `request_nonce` is rejected while prior request is active
+- Confirm a different `request_nonce` is accepted after prior completion
 
 ## Phase 2. Obsidian Integration Changes
 
 ### 2.1 Work Directory Layout
 
-- Change work directory handling from shared files to `runs/<request_id>/`
-- Create helpers for run directory paths
+- Change work directory handling to one `interop/` directory
+- Remove public dependence on `runs/<request_id>/`
 - Keep generated file handling under plugin-controlled paths only
 
 ### 2.2 Request File Writing
 
-- Generate `request_id` per logical operation
+- Generate `request_nonce` per new logical operation
 - Write `request.json` before URI launch
 - Ensure atomic write behavior for request files
 - Move command input payload references into request metadata
-- Keep command-local artifacts in the same run directory
 
 ### 2.3 URI Builder / Client
 
-- Update URI generation to include `request_id`
 - Update URI generation to include `request_file`
 - Keep all external launches URI-based
 - Ensure all commands use the same launch pattern
@@ -77,7 +76,7 @@ It is intended to be used after reading:
 
 - Add `accepted` phase detection
 - Add startup retry before accepted
-- Reuse the same `request_id` during retry
+- Reuse the same `request_nonce` during retry
 - Continue waiting for `completed` after accepted
 - Preserve timeout handling and clear error reporting
 
@@ -93,7 +92,7 @@ It is intended to be used after reading:
 ### 3.1 Protocol Activation Entry
 
 - Receive protocol activation arguments
-- Resolve `request_id` and `request_file`
+- Resolve `request_file`
 - Pass activation input into `ProtocolDispatcher`
 
 ### 3.2 Request Reader
@@ -105,17 +104,17 @@ It is intended to be used after reading:
 
 ### 3.3 Protocol Dispatcher
 
-- Check whether the request is new or already known
+- Check whether the request is new, a retry, or a conflicting active request
 - Write `accepted` as early as possible
-- Prevent duplicate execution for the same `request_id`
+- Prevent duplicate execution for the same `(status_file, request_nonce)`
 - Normalize URI command routing into internal command dispatch
 
 ### 3.4 Status Writer
 
 - Implement atomic write for `status.json`
-- Update `timestamp` on each write
+- Update `updated_at` on each write
 - Write success and error envelopes consistently
-- Keep `request_id` and `command` stable across writes
+- Keep `request_nonce` and `command` stable across writes
 
 ### 3.5 Command Dispatcher
 
@@ -125,18 +124,22 @@ It is intended to be used after reading:
 - Route `diff`
 - Route `push`
 - Route `review`
-- For `pull --include-completed`, write optional `pull-backup.json` into the run directory on success
+- For `pull --include-completed`, write optional `pull-backup.json` as an
+  optional artifact only
 
 ### 3.6 Idempotency
 
-- If `accepted` or `running` already exists for the same `request_id`, do not start a second execution
-- If `completed` already exists for the same `request_id`, do not re-run
+- If `accepted` or `running` already exists for the same `request_nonce`, do
+  not start a second execution
+- If `completed` already exists for the same `request_nonce`, do not re-run
+- If a different `request_nonce` arrives while `accepted` or `running`, reject
+  it in the same interop directory
 - Decide whether in-memory tracking is required or if file state is sufficient
 
 ### 3.7 Cleanup
 
-- Implement delayed cleanup for completed runs
-- Ensure cleanup never interrupts active runs
+- Keep caller-visible interop files stable
+- Ensure private cleanup never interrupts active runs
 - Log and ignore deletion failures caused by Windows file locks
 
 ## Phase 4. Validation
@@ -163,27 +166,29 @@ It is intended to be used after reading:
 - Validate `push`
 - Validate `review`
 
-### 4.4 Cleanup Validation
+### 4.4 Concurrency Validation
 
-- Verify old completed runs are removed according to policy
-- Verify active runs are never removed
-- Verify cleanup failure only logs warnings
+- Verify a new `request_nonce` is accepted after previous completion
+- Verify a different `request_nonce` is rejected while prior request is active
+- Verify one interop directory behaves as one active request slot
 
 ### 4.5 Migration Validation
 
 - Compare behavior with archived `ptune-log` launcher retry behavior
 - Compare behavior with current `ptune-task` URI client and watcher behavior
-- Confirm that the new contract removes dependence on stdout-based data transfer
+- Confirm that the new contract removes dependence on stdout-based data
+  transfer
 
 ## Suggested First Implementation Slice
 
-If implementation should begin with the smallest end-to-end slice, the recommended order is:
+If implementation should begin with the smallest end-to-end slice, the
+recommended order is:
 
 1. Finalize `request.json` and `status.json`
-2. Update Obsidian work dir and request writing
+2. Update Obsidian interop dir and request writing
 3. Update Obsidian watcher to support `accepted`
 4. Implement WinUI `ProtocolDispatcher` with idempotent accepted write
-5. Implement `pull` first, including optional `pull-backup.json` for `include_completed`
+5. Implement `pull` first, including optional `pull-backup.json`
 6. Validate `pull` from ptune-task through URI activation
 7. Add startup retry
 8. Expand to `diff`, `push`, and `review`

@@ -5,13 +5,15 @@
 This document defines the recommended field-level schema for the file-based run
 contract used by URI-launched PtuneSync WinUI commands.
 
-The minimum contract uses two files per run:
+The minimum public contract uses two fixed caller-visible files:
 
 - `request.json`
 - `status.json`
 
-The run directory MAY also contain command-specific auxiliary files such as
-`pull-backup.json`, but those files are not part of the minimum public contract.
+The public contract does not require per-request run directories.
+
+PtuneSync MAY still create private internal artifacts such as runtime logs or
+request snapshots outside the caller-visible interop directory.
 
 ## `request.json`
 
@@ -19,24 +21,26 @@ The run directory MAY also contain command-specific auxiliary files such as
 
 `request.json` is immutable caller input.
 
-It is written before URI launch and SHOULD NOT be modified after launch.
+It is written before URI launch and SHOULD NOT be modified after launch, except
+when the caller intentionally prepares the next logical request after the
+previous one completes.
 
 ### Required Fields
 
 | Field | Type | Description |
 |---|---|---|
 | `schema_version` | integer | request schema version |
-| `request_id` | string | logical request key |
+| `request_nonce` | string | public logical request key |
 | `command` | string | command name |
 | `created_at` | string | ISO8601 timestamp |
-| `workspace.status_file` | string | output status file path |
+| `status_file` | string | output status file path |
 
 ### Recommended Optional Fields
 
 | Field | Type | Description |
 |---|---|---|
-| `workspace.run_dir` | string | run directory path |
-| `input.*` | object | command-specific input file paths |
+| `input_file` | string | command-specific input file path |
+| `workspace_id` | string | caller workspace identity |
 | `args.*` | object | command arguments |
 | `meta.*` | object | caller metadata |
 
@@ -45,13 +49,10 @@ It is written before URI launch and SHOULD NOT be modified after launch.
 ```json
 {
   "schema_version": 1,
-  "request_id": "20260322T080000Z-a1b2c3",
+  "request_nonce": "20260328T094500123Z-01",
   "command": "pull",
-  "created_at": "2026-03-22T08:00:00Z",
-  "workspace": {
-    "run_dir": "work/runs/20260322T080000Z-a1b2c3",
-    "status_file": "work/runs/20260322T080000Z-a1b2c3/status.json"
-  },
+  "created_at": "2026-03-28T09:45:00Z",
+  "status_file": "work/interop/status.json",
   "args": {
     "list": "default",
     "include_completed": true
@@ -65,18 +66,18 @@ It is written before URI launch and SHOULD NOT be modified after launch.
 
 `status.json` is mutable runner output.
 
-It is the only file the caller needs to observe after launch.
+It is the only public output file the caller needs to observe after launch.
 
 ### Required Fields
 
 | Field | Type | Description |
 |---|---|---|
 | `schema_version` | integer | status schema version |
-| `request_id` | string | logical request key |
+| `request_nonce` | string | public logical request key |
 | `command` | string | command name |
 | `phase` | string | lifecycle phase |
 | `status` | string | execution status |
-| `timestamp` | string | ISO8601 timestamp |
+| `updated_at` | string | ISO8601 timestamp |
 | `message` | string or null | human-readable progress message |
 
 ### Recommended Optional Fields
@@ -89,14 +90,13 @@ It is the only file the caller needs to observe after launch.
 | `error` | object or null | structured error envelope |
 | `meta` | object or null | diagnostics metadata |
 
-`data` MAY contain run-local artifact paths when useful. For example, a
-successful `pull` with `include_completed=true` may include:
+`data` MAY contain command results directly.
 
-```json
-{
-  "backup_file": "work/runs/20260322T080000Z-a1b2c3/pull-backup.json"
-}
-```
+Examples:
+
+- `pull` summary counts
+- `review` exported review payload
+- optional artifact references such as `pull-backup.json`
 
 ## `phase`
 
@@ -133,6 +133,7 @@ Recommended types:
 - `AUTH_ERROR`
 - `REMOTE_ERROR`
 - `CONTRACT_ERROR`
+- `BUSY`
 - `SYSTEM_ERROR`
 
 ## Success Example
@@ -140,16 +141,18 @@ Recommended types:
 ```json
 {
   "schema_version": 1,
-  "request_id": "20260322T080000Z-a1b2c3",
+  "request_nonce": "20260328T094500123Z-01",
   "command": "review",
   "phase": "completed",
   "status": "success",
-  "timestamp": "2026-03-22T08:00:12Z",
+  "updated_at": "2026-03-28T09:45:12Z",
   "message": "review completed",
   "retry_count": 1,
   "instance_id": "main",
   "data": {
-    "generated_sections": 2
+    "date": "2026-03-28",
+    "list": "_Today",
+    "tasks": []
   },
   "error": null
 }
@@ -160,11 +163,11 @@ Recommended types:
 ```json
 {
   "schema_version": 1,
-  "request_id": "20260322T080000Z-a1b2c3",
+  "request_nonce": "20260328T094500123Z-01",
   "command": "auth-login",
   "phase": "completed",
   "status": "error",
-  "timestamp": "2026-03-22T08:00:12Z",
+  "updated_at": "2026-03-28T09:45:12Z",
   "message": "authentication failed",
   "retry_count": 0,
   "instance_id": "main",
@@ -183,10 +186,10 @@ Clients SHOULD:
 - ignore unknown fields
 - treat missing file as not-yet-written
 - treat invalid JSON as temporarily unreadable and retry read
-- use `request_id` as the run identity
+- use `request_nonce` to distinguish retry from a new request
 
 Writers SHOULD:
 
 - write full JSON through temp file + replace
 - preserve UTF-8 encoding
-- update `timestamp` on each write
+- update `updated_at` on each write

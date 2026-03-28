@@ -89,7 +89,6 @@ Example:
   request.json
   status.json
   input.json
-  output.json
 ```
 
 This area is the public file contract.
@@ -100,7 +99,6 @@ The caller may:
 - write command input files such as `input.json`
 - launch the URI
 - watch `status.json`
-- read command result files explicitly documented by the contract
 
 The caller should not depend on any private PtuneSync directory layout.
 
@@ -160,7 +158,8 @@ PtuneSync can then map one workspace to one private profile directory.
 Recommended direction:
 
 - the caller provides `request_file` and `status_file`, or an `interop_root`
-- PtuneSync treats those paths as the public request handle
+- the caller provides `request_nonce` inside `request.json`
+- PtuneSync treats `(status_file, request_nonce)` as the public request handle
 - PtuneSync generates an internal operation id when it needs one for logs,
   temporary files, or diagnostics
 
