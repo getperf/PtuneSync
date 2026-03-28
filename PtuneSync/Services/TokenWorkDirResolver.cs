@@ -7,29 +7,50 @@ public static class TokenWorkDirResolver
 {
     public static string Resolve(string? home, string logPrefix)
     {
-        if (!string.IsNullOrWhiteSpace(home))
+        var normalizedHome = string.IsNullOrWhiteSpace(home)
+            ? null
+            : Path.GetFullPath(home);
+        var authDir = Path.Combine(
+            ProfilePathResolver.ResolveProfileRoot(normalizedHome),
+            "auth");
+
+        Directory.CreateDirectory(authDir);
+        MigrateLegacyTokenIfNeeded(normalizedHome, authDir, logPrefix);
+        return authDir;
+    }
+
+    private static void MigrateLegacyTokenIfNeeded(string? normalizedHome, string authDir, string logPrefix)
+    {
+        var targetTokenFile = Path.Combine(authDir, "token.json");
+        if (File.Exists(targetTokenFile) || string.IsNullOrWhiteSpace(normalizedHome))
         {
-            var normalizedHome = Path.GetFullPath(home);
-            var authDir = Path.Combine(normalizedHome, "auth");
-            var authTokenFile = Path.Combine(authDir, "token.json");
-            var homeTokenFile = Path.Combine(normalizedHome, "token.json");
-
-            if (Directory.Exists(authDir) || File.Exists(authTokenFile))
-            {
-                Directory.CreateDirectory(authDir);
-                return authDir;
-            }
-
-            if (File.Exists(homeTokenFile))
-            {
-                return normalizedHome;
-            }
-
-            Directory.CreateDirectory(authDir);
-            return authDir;
+            return;
         }
 
-        AppLog.Warn("[{LogPrefix}] home missing. Falling back to legacy token path.", logPrefix);
-        return AppPaths.WorkDir(AppPaths.VaultHome);
+        var legacyAuthTokenFile = Path.Combine(normalizedHome, "auth", "token.json");
+        if (TryMoveLegacyToken(legacyAuthTokenFile, targetTokenFile, logPrefix))
+        {
+            return;
+        }
+
+        var legacyHomeTokenFile = Path.Combine(normalizedHome, "token.json");
+        TryMoveLegacyToken(legacyHomeTokenFile, targetTokenFile, logPrefix);
+    }
+
+    private static bool TryMoveLegacyToken(string sourceTokenFile, string targetTokenFile, string logPrefix)
+    {
+        if (!File.Exists(sourceTokenFile))
+        {
+            return false;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(targetTokenFile)!);
+        File.Move(sourceTokenFile, targetTokenFile, overwrite: true);
+        AppLog.Info(
+            "[{LogPrefix}] Migrated legacy token.json from {SourceTokenFile} to {TargetTokenFile}",
+            logPrefix,
+            sourceTokenFile,
+            targetTokenFile);
+        return true;
     }
 }

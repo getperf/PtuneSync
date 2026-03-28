@@ -1,14 +1,10 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-
 namespace PtuneSync.Infrastructure;
 
 public static class DbPathResolver
 {
     private const string DbFileName = "ptune_sync.db";
-    private const string DefaultAppLocalKey = "default";
 
     public static string ResolveCurrent(string? vaultHome = null)
     {
@@ -66,22 +62,9 @@ public static class DbPathResolver
 
     private static string ResolveAppLocal(string? vaultHome)
     {
-        var vaultKey = string.IsNullOrWhiteSpace(vaultHome)
-            ? DefaultAppLocalKey
-            : ComputeVaultKey(Path.GetFullPath(vaultHome));
-
         return Path.Combine(
-            AppPaths.LocalStateRoot,
+            ProfilePathResolver.ResolveProfileRoot(vaultHome),
             "db",
-            "ptune_sync",
-            vaultKey,
             DbFileName);
-    }
-
-    private static string ComputeVaultKey(string vaultHome)
-    {
-        using var sha256 = SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(vaultHome));
-        return Convert.ToHexString(bytes).ToLowerInvariant()[..12];
     }
 }
