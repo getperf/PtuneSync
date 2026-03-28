@@ -40,6 +40,8 @@ public sealed class RunPullHandler : IProtocolHandler
 
             var statusFile = runRequest!.ResolveStatusFile()!;
             var requestIdentity = runRequest.ResolveRequestIdentity();
+            var requestNonce = runRequest.ResolveRequestNonce();
+            var requestId = runRequest.ResolveLegacyRequestId();
             const string command = "pull";
 
             await RunStatusFileService.WriteAsync(
@@ -48,7 +50,9 @@ public sealed class RunPullHandler : IProtocolHandler
                 command,
                 phase: "accepted",
                 status: "running",
-                message: "dispatcher accepted request");
+                message: "dispatcher accepted request",
+                requestNonce: requestNonce,
+                requestId: requestId);
 
             try
             {
@@ -58,7 +62,9 @@ public sealed class RunPullHandler : IProtocolHandler
                     command,
                     phase: "running",
                     status: "running",
-                    message: "pull started");
+                    message: "pull started",
+                    requestNonce: requestNonce,
+                    requestId: requestId);
 
                 var service = new PullCommandService();
                 var result = await service.ExecuteAsync(runRequest);
@@ -87,7 +93,9 @@ public sealed class RunPullHandler : IProtocolHandler
                             updated_count = result.SyncRecord.UpdatedCount,
                             deleted_count = result.SyncRecord.DeletedCount,
                         },
-                    });
+                    },
+                    requestNonce: requestNonce,
+                    requestId: requestId);
             }
             catch (Exception ex)
             {
@@ -103,7 +111,9 @@ public sealed class RunPullHandler : IProtocolHandler
                     {
                         type = "SYSTEM_ERROR",
                         message = ex.Message,
-                    });
+                    },
+                    requestNonce: requestNonce,
+                    requestId: requestId);
             }
         }
         finally

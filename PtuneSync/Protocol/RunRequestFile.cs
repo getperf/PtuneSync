@@ -11,6 +11,9 @@ public sealed class RunRequestFile
     [JsonPropertyName("schema_version")]
     public int SchemaVersion { get; set; }
 
+    [JsonPropertyName("request_nonce")]
+    public string RequestNonce { get; set; } = "";
+
     [JsonPropertyName("request_id")]
     public string RequestId { get; set; } = "";
 
@@ -60,6 +63,11 @@ public sealed class RunRequestFile
 
     public string ResolveRequestIdentity()
     {
+        if (!string.IsNullOrWhiteSpace(RequestNonce))
+        {
+            return RequestNonce;
+        }
+
         if (!string.IsNullOrWhiteSpace(RequestId))
         {
             return RequestId;
@@ -78,6 +86,26 @@ public sealed class RunRequestFile
         }
 
         return $"internal-{Guid.NewGuid():N}";
+    }
+
+    public string? ResolvePublicRequestIdentity()
+    {
+        if (!string.IsNullOrWhiteSpace(RequestNonce))
+        {
+            return RequestNonce;
+        }
+
+        return string.IsNullOrWhiteSpace(RequestId) ? null : RequestId;
+    }
+
+    public string? ResolveRequestNonce()
+    {
+        return string.IsNullOrWhiteSpace(RequestNonce) ? null : RequestNonce;
+    }
+
+    public string? ResolveLegacyRequestId()
+    {
+        return string.IsNullOrWhiteSpace(RequestId) ? null : RequestId;
     }
 
     private static string BuildPathBasedIdentity(string path)

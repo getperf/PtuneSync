@@ -4,6 +4,9 @@ namespace PtuneSync.Protocol;
 
 public sealed class RunStatusSnapshot
 {
+    [JsonPropertyName("request_nonce")]
+    public string RequestNonce { get; set; } = "";
+
     [JsonPropertyName("request_id")]
     public string RequestId { get; set; } = "";
 
@@ -15,4 +18,14 @@ public sealed class RunStatusSnapshot
 
     [JsonPropertyName("status")]
     public string Status { get; set; } = "";
+
+    public string? ResolvePublicRequestIdentity()
+    {
+        if (!string.IsNullOrWhiteSpace(RequestNonce))
+        {
+            return RequestNonce;
+        }
+
+        return string.IsNullOrWhiteSpace(RequestId) ? null : RequestId;
+    }
 }

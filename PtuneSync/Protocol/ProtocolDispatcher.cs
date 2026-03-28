@@ -31,21 +31,21 @@ public static class ProtocolDispatcher
 
         if (_handlers.TryGetValue(request.Command, out var handler))
         {
-            if (TryGetRunDispatchGuard(request, out var runKey, out var completedOrActiveMessage))
+            if (await TryGetRunDispatchGuardAsync(request) is var guard && guard.Enabled)
             {
-                if (!string.IsNullOrWhiteSpace(completedOrActiveMessage))
+                if (!string.IsNullOrWhiteSpace(guard.CompletedOrActiveMessage))
                 {
-                    var guardedRunKey = runKey ?? "<unknown>";
+                    var guardedRunKey = guard.RunKey ?? "<unknown>";
                     AppLog.Info("[ProtocolDispatcher] Skip duplicate run. command={Command} key={RunKey} reason={Reason}",
                         request.Command,
                         guardedRunKey,
-                        completedOrActiveMessage);
+                        guard.CompletedOrActiveMessage);
                     return;
                 }
 
-                if (!_activeRunKeys.TryAdd(runKey!, 0))
+                if (!_activeRunKeys.TryAdd(guard.RunKey!, 0))
                 {
-                    var guardedRunKey = runKey ?? "<unknown>";
+                    var guardedRunKey = guard.RunKey ?? "<unknown>";
                     AppLog.Info("[ProtocolDispatcher] Skip in-memory duplicate run. command={Command} key={RunKey}",
                         request.Command,
                         guardedRunKey);
@@ -63,9 +63,9 @@ public static class ProtocolDispatcher
             }
             finally
             {
-                if (!string.IsNullOrWhiteSpace(runKey))
+                if (!string.IsNullOrWhiteSpace(guard.RunKey))
                 {
-                    _activeRunKeys.TryRemove(runKey, out _);
+                    _activeRunKeys.TryRemove(guard.RunKey, out _);
                 }
             }
         }
@@ -75,69 +75,84 @@ public static class ProtocolDispatcher
         }
     }
 
-    private static bool TryGetRunDispatchGuard(
-        ProtocolRequest request,
-        out string? runKey,
-        out string? completedOrActiveMessage)
+    private static async Task<RunDispatchGuard> TryGetRunDispatchGuardAsync(ProtocolRequest request)
     {
-        runKey = null;
-        completedOrActiveMessage = null;
-
         if (!request.Command.StartsWith("run/", StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            return RunDispatchGuard.Disabled;
         }
 
         var requestFile = request.Get("request_file");
         if (string.IsNullOrWhiteSpace(requestFile))
         {
             AppLog.Warn("[ProtocolDispatcher] request_file missing for run command: {Command}", request.Command);
-            return false;
+            return RunDispatchGuard.Disabled;
         }
 
         RunRequestFile? runRequest;
         try
         {
-            runRequest = RunRequestFileReader.ReadAsync(requestFile).GetAwaiter().GetResult();
+            runRequest = await RunRequestFileReader.ReadAsync(requestFile);
         }
         catch (Exception ex)
         {
             AppLog.Error(ex, "[ProtocolDispatcher] Failed to read request file for dispatch guard: {RequestFile}", requestFile);
-            return false;
+            return RunDispatchGuard.Disabled;
         }
 
         if (!RunRequestFileReader.IsValid(runRequest))
         {
             AppLog.Warn("[ProtocolDispatcher] Invalid run request for dispatch guard: {RequestFile}", requestFile);
-            return false;
+            return RunDispatchGuard.Disabled;
         }
 
-        runKey = runRequest!.ResolveRequestIdentity();
-        var statusFile = runRequest.ResolveStatusFile();
+        var validRunRequest = runRequest!;
+        var statusFile = validRunRequest.ResolveStatusFile();
         if (string.IsNullOrWhiteSpace(statusFile))
         {
-            return true;
+            return RunDispatchGuard.Disabled;
         }
+
+        var publicIdentity = validRunRequest.ResolvePublicRequestIdentity();
+        if (string.IsNullOrWhiteSpace(publicIdentity))
+        {
+            AppLog.Warn("[ProtocolDispatcher] Missing request identity for dispatch guard: {RequestFile}", requestFile);
+            return RunDispatchGuard.Disabled;
+        }
+
+        var runKey = BuildRunKey(statusFile, publicIdentity);
 
         try
         {
-            var snapshot = RunStatusSnapshotReader.ReadAsync(statusFile).GetAwaiter().GetResult();
+            var snapshot = await RunStatusSnapshotReader.ReadAsync(statusFile);
             if (snapshot == null)
             {
-                return true;
+                return RunDispatchGuard.EnabledFor(runKey);
             }
+
+            var existingIdentity = snapshot.ResolvePublicRequestIdentity();
+            var isSameLogicalRequest = string.Equals(
+                existingIdentity,
+                publicIdentity,
+                StringComparison.Ordinal);
 
             if (string.Equals(snapshot.Phase, "completed", StringComparison.OrdinalIgnoreCase))
             {
-                completedOrActiveMessage = "already completed";
-                return true;
+                if (isSameLogicalRequest)
+                {
+                    return RunDispatchGuard.EnabledFor(runKey, "already completed");
+                }
+
+                return RunDispatchGuard.EnabledFor(runKey);
             }
 
             if (string.Equals(snapshot.Phase, "accepted", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(snapshot.Phase, "running", StringComparison.OrdinalIgnoreCase))
             {
-                completedOrActiveMessage = $"already {snapshot.Phase.ToLowerInvariant()}";
-                return true;
+                var message = isSameLogicalRequest
+                    ? $"already {snapshot.Phase.ToLowerInvariant()}"
+                    : $"busy with {snapshot.Phase.ToLowerInvariant()} request";
+                return RunDispatchGuard.EnabledFor(runKey, message);
             }
         }
         catch (Exception ex)
@@ -145,6 +160,21 @@ public static class ProtocolDispatcher
             AppLog.Error(ex, "[ProtocolDispatcher] Failed to read status file for dispatch guard: {StatusFile}", statusFile);
         }
 
-        return true;
+        return RunDispatchGuard.EnabledFor(runKey);
+    }
+
+    private static string BuildRunKey(string statusFile, string requestIdentity)
+    {
+        return $"{statusFile.Trim().ToLowerInvariant()}::{requestIdentity}";
+    }
+
+    private readonly record struct RunDispatchGuard(bool Enabled, string? RunKey, string? CompletedOrActiveMessage)
+    {
+        public static RunDispatchGuard Disabled => new(false, null, null);
+
+        public static RunDispatchGuard EnabledFor(string runKey, string? message = null)
+        {
+            return new RunDispatchGuard(true, runKey, message);
+        }
     }
 }

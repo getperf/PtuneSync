@@ -36,6 +36,8 @@ public sealed class RunPushHandler : IProtocolHandler
 
         var statusFile = runRequest!.ResolveStatusFile()!;
         var requestIdentity = runRequest.ResolveRequestIdentity();
+        var requestNonce = runRequest.ResolveRequestNonce();
+        var requestId = runRequest.ResolveLegacyRequestId();
         const string command = "push";
 
         await RunStatusFileService.WriteAsync(
@@ -44,7 +46,9 @@ public sealed class RunPushHandler : IProtocolHandler
             command,
             phase: "accepted",
             status: "running",
-            message: "dispatcher accepted request");
+            message: "dispatcher accepted request",
+            requestNonce: requestNonce,
+            requestId: requestId);
 
         try
         {
@@ -54,7 +58,9 @@ public sealed class RunPushHandler : IProtocolHandler
                 command,
                 phase: "running",
                 status: "running",
-                message: "push started");
+                message: "push started",
+                requestNonce: requestNonce,
+                requestId: requestId);
 
             var service = new PushCommandService();
             var result = await service.ExecuteAsync(runRequest);
@@ -79,7 +85,9 @@ public sealed class RunPushHandler : IProtocolHandler
                     },
                     errors = result.DiffResult.Errors,
                     warnings = result.DiffResult.Warnings,
-                });
+                },
+                requestNonce: requestNonce,
+                requestId: requestId);
         }
         catch (Exception ex)
         {
@@ -92,10 +100,12 @@ public sealed class RunPushHandler : IProtocolHandler
                 status: "error",
                 message: "push failed",
                 error: new
-                {
-                    type = "SYSTEM_ERROR",
-                    message = ex.Message,
-                });
+                    {
+                        type = "SYSTEM_ERROR",
+                        message = ex.Message,
+                    },
+                    requestNonce: requestNonce,
+                    requestId: requestId);
         }
     }
 }

@@ -36,6 +36,8 @@ public sealed class RunDiffHandler : IProtocolHandler
 
         var statusFile = runRequest!.ResolveStatusFile()!;
         var requestIdentity = runRequest.ResolveRequestIdentity();
+        var requestNonce = runRequest.ResolveRequestNonce();
+        var requestId = runRequest.ResolveLegacyRequestId();
         const string command = "diff";
 
         await RunStatusFileService.WriteAsync(
@@ -44,7 +46,9 @@ public sealed class RunDiffHandler : IProtocolHandler
             command,
             phase: "accepted",
             status: "running",
-            message: "dispatcher accepted request");
+            message: "dispatcher accepted request",
+            requestNonce: requestNonce,
+            requestId: requestId);
 
         try
         {
@@ -54,7 +58,9 @@ public sealed class RunDiffHandler : IProtocolHandler
                 command,
                 phase: "running",
                 status: "running",
-                message: "diff started");
+                message: "diff started",
+                requestNonce: requestNonce,
+                requestId: requestId);
 
             var service = new DiffCommandService();
             var result = await service.ExecuteAsync(runRequest);
@@ -78,7 +84,9 @@ public sealed class RunDiffHandler : IProtocolHandler
                     },
                     errors = result.Errors,
                     warnings = result.Warnings,
-                });
+                },
+                requestNonce: requestNonce,
+                requestId: requestId);
         }
         catch (Exception ex)
         {
@@ -91,10 +99,12 @@ public sealed class RunDiffHandler : IProtocolHandler
                 status: "error",
                 message: "diff failed",
                 error: new
-                {
-                    type = "SYSTEM_ERROR",
-                    message = ex.Message,
-                });
+                    {
+                        type = "SYSTEM_ERROR",
+                        message = ex.Message,
+                    },
+                    requestNonce: requestNonce,
+                    requestId: requestId);
         }
     }
 }

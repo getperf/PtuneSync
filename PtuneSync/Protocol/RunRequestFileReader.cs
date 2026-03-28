@@ -21,6 +21,7 @@ public static class RunRequestFileReader
     public static bool IsValid(RunRequestFile? runRequest)
     {
         return runRequest != null
+            && !string.IsNullOrWhiteSpace(runRequest.ResolvePublicRequestIdentity())
             && !string.IsNullOrWhiteSpace(runRequest.ResolveStatusFile());
     }
 }

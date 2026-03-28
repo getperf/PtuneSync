@@ -1,20 +1,40 @@
 param(
     [ValidateSet("pull", "auth-status", "auth-login")]
     [string]$Command = "pull",
-    [string]$VaultHome = "$env:TEMP\\PtuneSyncProtocolTest\\work",
+    [string]$VaultHome = "",
     [int]$TimeoutSec = 30,
     [string]$ListName = "_Today",
     [switch]$IncludeCompleted,
-    [switch]$SkipRequestId
+    [string]$RequestNonce = "",
+    [string]$InteropRoot = ""
 )
 
-$requestId = "{0}-{1}" -f (Get-Date -Format "yyyyMMddTHHmmssfffZ"), ([guid]::NewGuid().ToString("N").Substring(0, 8))
-$runDir = Join-Path $env:TEMP "PtuneSyncProtocolTest\\runs\\$requestId"
-$statusFile = Join-Path $runDir "status.json"
-$requestFile = Join-Path $runDir "request.json"
+$packageFamilyName = "Getperf.PtuneSync_mex14frpm041c"
+$packageLocalState = Join-Path $env:LOCALAPPDATA "Packages\\$packageFamilyName\\LocalState"
 
-New-Item -ItemType Directory -Force -Path $runDir | Out-Null
-New-Item -ItemType Directory -Force -Path $VaultHome | Out-Null
+$effectiveInteropRoot = if ([string]::IsNullOrWhiteSpace($InteropRoot)) {
+    Join-Path $packageLocalState "interop"
+} else {
+    $InteropRoot
+}
+
+$effectiveVaultHome = if ([string]::IsNullOrWhiteSpace($VaultHome)) {
+    Join-Path $packageLocalState "vault_home"
+} else {
+    $VaultHome
+}
+
+$requestNonceValue = if ([string]::IsNullOrWhiteSpace($RequestNonce)) {
+    "{0}-{1}" -f (Get-Date -Format "yyyyMMddTHHmmssfffZ"), ([guid]::NewGuid().ToString("N").Substring(0, 2))
+} else {
+    $RequestNonce
+}
+$interopDir = $effectiveInteropRoot
+$statusFile = Join-Path $interopDir "status.json"
+$requestFile = Join-Path $interopDir "request.json"
+
+New-Item -ItemType Directory -Force -Path $interopDir | Out-Null
+New-Item -ItemType Directory -Force -Path $effectiveVaultHome | Out-Null
 
 $requestCommand = switch ($Command) {
     "pull" { "pull" }
@@ -30,12 +50,12 @@ $uriCommand = switch ($Command) {
 
 $request = @{
     schema_version = 1
+    request_nonce = $requestNonceValue
     command = $requestCommand
     created_at = [DateTimeOffset]::UtcNow.ToString("O")
-    home = $VaultHome
+    home = $effectiveVaultHome
     status_file = $statusFile
     workspace = @{
-        run_dir = $runDir
         status_file = $statusFile
     }
     args = @{
@@ -44,23 +64,23 @@ $request = @{
     }
 }
 
-if (-not $SkipRequestId) {
-    $request.request_id = $requestId
+if (Test-Path -LiteralPath $statusFile) {
+    Remove-Item -LiteralPath $statusFile -Force
 }
 
 $request | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 $requestFile
 
 $escapedRequestFile = [Uri]::EscapeDataString($requestFile.Replace('\', '/'))
-$uri = if ($SkipRequestId) {
-    "net.getperf.ptune.googleoauth:/${uriCommand}?request_file=$escapedRequestFile"
-} else {
-    "net.getperf.ptune.googleoauth:/${uriCommand}?request_id=$requestId&request_file=$escapedRequestFile"
-}
+$uri = "net.getperf.ptune.googleoauth:/${uriCommand}?request_file=$escapedRequestFile"
 
 Write-Host "== Request =="
 Write-Host $requestFile
 Write-Host "== Status =="
 Write-Host $statusFile
+Write-Host "== VaultHome =="
+Write-Host $effectiveVaultHome
+Write-Host "== RequestNonce =="
+Write-Host $requestNonceValue
 Write-Host "== URI =="
 Write-Host $uri
 
@@ -73,8 +93,11 @@ while ((Get-Date) -lt $deadline) {
         try {
             $status = $raw | ConvertFrom-Json
             Write-Host "== Current Status =="
-            Write-Host "phase=$($status.phase) status=$($status.status) message=$($status.message)"
-            if ($status.phase -eq "completed") {
+            Write-Host "request_nonce=$($status.request_nonce) phase=$($status.phase) status=$($status.status) message=$($status.message)"
+            if ($status.request_nonce -ne $requestNonceValue) {
+                Write-Host "status.json belongs to a different request_nonce; waiting for current request"
+            }
+            elseif ($status.phase -eq "completed") {
                 Write-Host "== status.json =="
                 Write-Host $raw
                 exit 0

@@ -110,6 +110,7 @@ public sealed class PullCommandService
             {
                 type = "pull-backup",
                 command = "pull",
+                request_nonce = request.ResolveRequestNonce(),
                 request_id = requestIdentity,
                 payload.schema_version,
                 payload.list,

@@ -11,14 +11,16 @@ public static class RunStatusFileService
 {
     public static async Task WriteAsync(
         string statusFile,
-        string requestId,
+        string requestIdentity,
         string command,
         string phase,
         string status,
         string message,
         object? data = null,
         object? error = null,
-        int retryCount = 0)
+        int retryCount = 0,
+        string? requestNonce = null,
+        string? requestId = null)
     {
         if (string.IsNullOrWhiteSpace(statusFile))
         {
@@ -44,7 +46,9 @@ public static class RunStatusFileService
             {
                 version = 2,
                 schema_version = 1,
+                request_nonce = requestNonce,
                 request_id = requestId,
+                request_key = requestIdentity,
                 command,
                 phase,
                 status,
