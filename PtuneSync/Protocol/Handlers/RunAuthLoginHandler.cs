@@ -35,11 +35,12 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
         }
 
         var statusFile = runRequest!.ResolveStatusFile()!;
+        var requestIdentity = runRequest.ResolveRequestIdentity();
         const string command = "auth-login";
 
         await RunStatusFileService.WriteAsync(
             statusFile,
-            runRequest.RequestId,
+            requestIdentity,
             command,
             phase: "accepted",
             status: "running",
@@ -53,7 +54,7 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
 
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "running",
                 status: "running",
@@ -69,7 +70,7 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
 
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "success",
@@ -88,7 +89,7 @@ public sealed class RunAuthLoginHandler : IProtocolHandler
             AppLog.Error(ex, "[RunAuthLoginHandler] auth-login failed");
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "error",

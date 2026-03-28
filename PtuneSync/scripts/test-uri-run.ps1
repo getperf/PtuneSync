@@ -1,8 +1,11 @@
 param(
-    [ValidateSet("auth-status", "auth-login")]
-    [string]$Command = "auth-status",
+    [ValidateSet("pull", "auth-status", "auth-login")]
+    [string]$Command = "pull",
     [string]$VaultHome = "$env:TEMP\\PtuneSyncProtocolTest\\work",
-    [int]$TimeoutSec = 30
+    [int]$TimeoutSec = 30,
+    [string]$ListName = "_Today",
+    [switch]$IncludeCompleted,
+    [switch]$SkipRequestId
 )
 
 $requestId = "{0}-{1}" -f (Get-Date -Format "yyyyMMddTHHmmssfffZ"), ([guid]::NewGuid().ToString("N").Substring(0, 8))
@@ -14,18 +17,19 @@ New-Item -ItemType Directory -Force -Path $runDir | Out-Null
 New-Item -ItemType Directory -Force -Path $VaultHome | Out-Null
 
 $requestCommand = switch ($Command) {
+    "pull" { "pull" }
     "auth-status" { "auth-status" }
     "auth-login" { "auth-login" }
 }
 
 $uriCommand = switch ($Command) {
+    "pull" { "run/pull" }
     "auth-status" { "run/auth/status" }
     "auth-login" { "run/auth/login" }
 }
 
 $request = @{
     schema_version = 1
-    request_id = $requestId
     command = $requestCommand
     created_at = [DateTimeOffset]::UtcNow.ToString("O")
     home = $VaultHome
@@ -34,12 +38,24 @@ $request = @{
         run_dir = $runDir
         status_file = $statusFile
     }
+    args = @{
+        list = $ListName
+        include_completed = [bool]$IncludeCompleted
+    }
+}
+
+if (-not $SkipRequestId) {
+    $request.request_id = $requestId
 }
 
 $request | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 $requestFile
 
 $escapedRequestFile = [Uri]::EscapeDataString($requestFile.Replace('\', '/'))
-$uri = "net.getperf.ptune.googleoauth:/${uriCommand}?request_id=$requestId&request_file=$escapedRequestFile"
+$uri = if ($SkipRequestId) {
+    "net.getperf.ptune.googleoauth:/${uriCommand}?request_file=$escapedRequestFile"
+} else {
+    "net.getperf.ptune.googleoauth:/${uriCommand}?request_id=$requestId&request_file=$escapedRequestFile"
+}
 
 Write-Host "== Request =="
 Write-Host $requestFile

@@ -7,6 +7,7 @@ public static class SessionNames
     public const string Auth = "auth";
     public const string Import = "import";
     public const string Export = "export";
+    public const string RunPull = "run-pull";
 
     public const string GetTasksMarkdown = "get-tasks-md";
 }
@@ -32,16 +33,24 @@ public static class ActivationSessionManager
         _pendingOps.Remove(op);
         AppLog.Debug("[Session] End {0}", op);
 
-        if (_pendingOps.Count == 0)
-        {
-            if (IsGuiMode)
-            {
-                AppLog.Info("[Session] Completed (GUI mode) → stay alive");
-                return;
-            }
+        TryShutdownIfIdle();
+    }
 
-            AppLog.Info("[Session] All operations complete → Exit");
-            Environment.Exit(0);
+    public static void TryShutdownIfIdle()
+    {
+        if (_pendingOps.Count != 0)
+        {
+            AppLog.Debug("[Session] Pending operations remain: {0}", _pendingOps.Count);
+            return;
         }
+
+        if (IsGuiMode)
+        {
+            AppLog.Info("[Session] Completed (GUI mode) → stay alive");
+            return;
+        }
+
+        AppLog.Info("[Session] All operations complete → Exit");
+        Environment.Exit(0);
     }
 }

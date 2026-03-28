@@ -35,11 +35,12 @@ public sealed class RunDiffHandler : IProtocolHandler
         }
 
         var statusFile = runRequest!.ResolveStatusFile()!;
+        var requestIdentity = runRequest.ResolveRequestIdentity();
         const string command = "diff";
 
         await RunStatusFileService.WriteAsync(
             statusFile,
-            runRequest.RequestId,
+            requestIdentity,
             command,
             phase: "accepted",
             status: "running",
@@ -49,7 +50,7 @@ public sealed class RunDiffHandler : IProtocolHandler
         {
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "running",
                 status: "running",
@@ -60,7 +61,7 @@ public sealed class RunDiffHandler : IProtocolHandler
 
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "success",
@@ -84,7 +85,7 @@ public sealed class RunDiffHandler : IProtocolHandler
             AppLog.Error(ex, "[RunDiffHandler] diff failed");
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "error",

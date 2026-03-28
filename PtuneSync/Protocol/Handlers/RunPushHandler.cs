@@ -35,11 +35,12 @@ public sealed class RunPushHandler : IProtocolHandler
         }
 
         var statusFile = runRequest!.ResolveStatusFile()!;
+        var requestIdentity = runRequest.ResolveRequestIdentity();
         const string command = "push";
 
         await RunStatusFileService.WriteAsync(
             statusFile,
-            runRequest.RequestId,
+            requestIdentity,
             command,
             phase: "accepted",
             status: "running",
@@ -49,7 +50,7 @@ public sealed class RunPushHandler : IProtocolHandler
         {
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "running",
                 status: "running",
@@ -60,7 +61,7 @@ public sealed class RunPushHandler : IProtocolHandler
 
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "success",
@@ -85,7 +86,7 @@ public sealed class RunPushHandler : IProtocolHandler
             AppLog.Error(ex, "[RunPushHandler] push failed");
             await RunStatusFileService.WriteAsync(
                 statusFile,
-                runRequest.RequestId,
+                requestIdentity,
                 command,
                 phase: "completed",
                 status: "error",

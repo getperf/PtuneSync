@@ -1,4 +1,7 @@
+using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace PtuneSync.Protocol;
@@ -53,6 +56,36 @@ public sealed class RunRequestFile
         return string.IsNullOrWhiteSpace(statusFile)
             ? null
             : Path.GetDirectoryName(statusFile);
+    }
+
+    public string ResolveRequestIdentity()
+    {
+        if (!string.IsNullOrWhiteSpace(RequestId))
+        {
+            return RequestId;
+        }
+
+        var statusFile = ResolveStatusFile();
+        if (!string.IsNullOrWhiteSpace(statusFile))
+        {
+            return BuildPathBasedIdentity(statusFile);
+        }
+
+        var runDir = ResolveRunDir();
+        if (!string.IsNullOrWhiteSpace(runDir))
+        {
+            return BuildPathBasedIdentity(runDir);
+        }
+
+        return $"internal-{Guid.NewGuid():N}";
+    }
+
+    private static string BuildPathBasedIdentity(string path)
+    {
+        var normalized = Path.GetFullPath(path).Trim().ToLowerInvariant();
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
+        var hash = Convert.ToHexString(bytes).ToLowerInvariant()[..12];
+        return $"internal-{hash}";
     }
 }
 

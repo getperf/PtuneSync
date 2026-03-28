@@ -102,6 +102,7 @@ public sealed class PullCommandService
         };
 
         var runDir = request.ResolveRunDir();
+        var requestIdentity = request.ResolveRequestIdentity();
         string? backupFile = null;
         if (includeCompleted)
         {
@@ -109,7 +110,7 @@ public sealed class PullCommandService
             {
                 type = "pull-backup",
                 command = "pull",
-                request_id = request.RequestId,
+                request_id = requestIdentity,
                 payload.schema_version,
                 payload.list,
                 payload.include_completed,
