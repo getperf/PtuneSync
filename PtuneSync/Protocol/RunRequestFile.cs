@@ -128,6 +128,12 @@ public sealed class RunRequestWorkspace
 
 public sealed class RunRequestArgs
 {
+    [JsonPropertyName("preset")]
+    public string Preset { get; set; } = "";
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = "";
+
     [JsonPropertyName("list")]
     public string List { get; set; } = "";
 

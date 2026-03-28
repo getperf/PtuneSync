@@ -21,6 +21,7 @@ public static class ProtocolDispatcher
         { "run/auth/status", new Handlers.RunAuthStatusHandler() },
         { "run/auth/login", new Handlers.RunAuthLoginHandler() },
         { "run/pull", new Handlers.RunPullHandler() },
+        { "run/review", new Handlers.RunReviewHandler() },
         { "run/diff", new Handlers.RunDiffHandler() },
         { "run/push", new Handlers.RunPushHandler() },
     };

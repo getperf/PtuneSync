@@ -1,9 +1,10 @@
 param(
-    [ValidateSet("pull", "auth-status", "auth-login")]
+    [ValidateSet("pull", "review", "auth-status", "auth-login")]
     [string]$Command = "pull",
     [string]$VaultHome = "",
     [int]$TimeoutSec = 30,
     [string]$ListName = "_Today",
+    [string]$Date = "",
     [switch]$IncludeCompleted,
     [string]$RequestNonce = "",
     [string]$InteropRoot = ""
@@ -38,12 +39,14 @@ New-Item -ItemType Directory -Force -Path $effectiveVaultHome | Out-Null
 
 $requestCommand = switch ($Command) {
     "pull" { "pull" }
+    "review" { "review" }
     "auth-status" { "auth-status" }
     "auth-login" { "auth-login" }
 }
 
 $uriCommand = switch ($Command) {
     "pull" { "run/pull" }
+    "review" { "run/review" }
     "auth-status" { "run/auth/status" }
     "auth-login" { "run/auth/login" }
 }
@@ -59,6 +62,8 @@ $request = @{
         status_file = $statusFile
     }
     args = @{
+        preset = if ([string]::IsNullOrWhiteSpace($Date)) { "today" } else { "date" }
+        date = $Date
         list = $ListName
         include_completed = [bool]$IncludeCompleted
     }

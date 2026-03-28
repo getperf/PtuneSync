@@ -10,6 +10,7 @@ public static class SessionNames
     public const string RunAuthLogin = "run-auth-login";
     public const string RunAuthStatus = "run-auth-status";
     public const string RunPull = "run-pull";
+    public const string RunReview = "run-review";
 
     public const string GetTasksMarkdown = "get-tasks-md";
 }
