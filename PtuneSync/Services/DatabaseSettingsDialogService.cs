@@ -123,7 +123,7 @@ public sealed class DatabaseSettingsDialogService
     private static List<string> ParseSuggestionLines(string? text)
     {
         return (text ?? string.Empty)
-            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
             .Select(static line => line.Trim())
             .Where(static line => !string.IsNullOrWhiteSpace(line))
             .Distinct(StringComparer.Ordinal)
