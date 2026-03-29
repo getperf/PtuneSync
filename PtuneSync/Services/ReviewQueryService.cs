@@ -120,9 +120,7 @@ public sealed class ReviewQueryService
             FROM task_histories
             WHERE sync_history_id = $syncHistoryId
             ORDER BY
-                CASE WHEN completed IS NULL OR completed = '' THEN 0 ELSE 1 END,
-                completed,
-                title;
+                rowid;
             """;
         command.Parameters.AddWithValue("$syncHistoryId", syncHistoryId);
 
