@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -82,11 +83,28 @@ public static class AppConfigManager
         config.TaskMetadata ??= defaults.TaskMetadata;
         config.OtherSettings ??= defaults.OtherSettings;
 
-        config.TaskMetadata.TagSuggestions ??=
-            new List<string>(defaults.TaskMetadata.TagSuggestions);
-        config.TaskMetadata.GoalSuggestions ??=
-            new List<string>(defaults.TaskMetadata.GoalSuggestions);
+        config.TaskMetadata.TagSuggestions = NormalizeSuggestionList(
+            config.TaskMetadata.TagSuggestions,
+            defaults.TaskMetadata.TagSuggestions);
+        config.TaskMetadata.GoalSuggestions = NormalizeSuggestionList(
+            config.TaskMetadata.GoalSuggestions,
+            defaults.TaskMetadata.GoalSuggestions);
 
         return config;
+    }
+
+    private static List<string> NormalizeSuggestionList(
+        List<string>? values,
+        List<string> defaults)
+    {
+        var source = values is { Count: > 0 } ? values : defaults;
+
+        return source
+            .SelectMany(static value => (value ?? string.Empty)
+                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None))
+            .Select(static value => value.Trim())
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
     }
 }

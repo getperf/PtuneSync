@@ -104,6 +104,15 @@ public sealed partial class TaskEditorView : UserControl
         }
     }
 
+    private void OnCycleGoalClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is TaskItem item)
+        {
+            AppLog.Info("[UI] CycleGoal: {0}", item.Title);
+            item.CycleGoal();
+        }
+    }
+
     // タスク削除
     private void OnDeleteTaskClicked(object sender, RoutedEventArgs e)
     {

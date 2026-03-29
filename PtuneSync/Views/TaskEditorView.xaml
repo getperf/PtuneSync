@@ -22,38 +22,83 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:TaskItem">
 
-                        <Grid Margin="0,4">
+                        <Grid Margin="0,4,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="40" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="50" />
                             </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
                             <!-- 削除ボタン -->
-                            <Button Grid.Column="0"
+                            <Button Grid.Row="0"
+                                    Grid.Column="0"
                                     Content="✕"
                                     HorizontalAlignment="Center"
                                     Click="OnDeleteTaskClicked" />
 
                             <!-- タイトル -->
-                            <TextBox Grid.Column="1"
+                            <TextBox Grid.Row="0"
+                                    Grid.Column="1"
                                     Margin="{x:Bind Indent, Mode=OneWay}"
                                     Text="{x:Bind Title, Mode=TwoWay}"
                                     Height="36"
                                     HorizontalAlignment="Stretch"/>
 
                             <!-- 🍅インクリメント -->
-                            <Button Grid.Column="2"
+                            <Button Grid.Row="0"
+                                    Grid.Column="2"
                                     Content="{x:Bind PomodoroLabel, Mode=OneWay}"
                                     HorizontalAlignment="Center"
                                     Click="OnIncrementPomodoroClicked" />
 
                             <!-- 親/子切替 -->
-                            <Button Grid.Column="3"
+                            <Button Grid.Row="0"
+                                    Grid.Column="3"
                                     Content="⇄"
                                     HorizontalAlignment="Right"
                                     Click="OnToggleHierarchyClicked" />
+
+                            <Grid Grid.Row="1"
+                                  Grid.Column="1"
+                                  Grid.ColumnSpan="3"
+                                  Margin="{x:Bind Indent, Mode=OneWay}"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ItemsControl Grid.Column="0"
+                                              ItemsSource="{x:Bind TagSuggestions, Mode=OneWay}"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Center">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TagSuggestionItem">
+                                            <ToggleButton Content="{x:Bind DisplayName, Mode=OneWay}"
+                                                          Margin="0,0,0,4"
+                                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Button Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        Content="{x:Bind GoalLabel, Mode=OneWay}"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Click="OnCycleGoalClicked" />
+                            </Grid>
 
                         </Grid>
 

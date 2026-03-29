@@ -118,6 +118,7 @@ namespace PtuneSync.ViewModels
             AppConfigManager.Config.TaskMetadata.TagSuggestions = result.TagSuggestions.ToList();
             AppConfigManager.Config.TaskMetadata.GoalSuggestions = result.GoalSuggestions.ToList();
             AppConfigManager.Save();
+            Editor.ReloadSuggestions();
             StatusMessage = AppStrings.DatabaseSettingsSaved;
         }
     }

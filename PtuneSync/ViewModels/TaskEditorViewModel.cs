@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using PtuneSync.Infrastructure;
 using PtuneSync.Messages;
 using PtuneSync.Models;
@@ -11,11 +12,18 @@ namespace PtuneSync.ViewModels;
 // ★ ObservableRecipient を継承
 public partial class TaskEditorViewModel : ObservableRecipient
 {
+    private IReadOnlyList<string> _tagSuggestions = new List<string>();
+    private IReadOnlyList<string> _goalSuggestions = new List<string>();
+
     public ObservableCollection<TaskItem> Tasks { get; } = new();
+
+    public IReadOnlyList<string> TagSuggestions => _tagSuggestions;
+    public IReadOnlyList<string> GoalSuggestions => _goalSuggestions;
 
     public TaskEditorViewModel()
     {
         AppLog.Debug("[TaskEditorViewModel] Constructor invoked");
+        ReloadSuggestions();
 
         // Messenger 受信用に有効化
         IsActive = true;
@@ -60,6 +68,7 @@ public partial class TaskEditorViewModel : ObservableRecipient
             Title = "",
             IsChild = isChild
         };
+        newTask.InitializeMetadataSuggestions(_tagSuggestions, _goalSuggestions);
 
         Tasks.Add(newTask);
         RefreshIndexes();
@@ -92,5 +101,16 @@ public partial class TaskEditorViewModel : ObservableRecipient
     {
         for (int i = 0; i < Tasks.Count; i++)
             Tasks[i].Index = i;
+    }
+
+    public void ReloadSuggestions()
+    {
+        _tagSuggestions = AppConfigManager.Config.TaskMetadata.TagSuggestions;
+        _goalSuggestions = AppConfigManager.Config.TaskMetadata.GoalSuggestions;
+
+        foreach (var task in Tasks)
+        {
+            task.InitializeMetadataSuggestions(_tagSuggestions, _goalSuggestions);
+        }
     }
 }
