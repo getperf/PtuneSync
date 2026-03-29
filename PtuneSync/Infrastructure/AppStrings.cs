@@ -3,6 +3,8 @@ namespace PtuneSync.Infrastructure;
 public static class AppStrings
 {
     public static string Ready => "準備完了";
+    public static string PullCompleted => "Pull を実行しました";
+    public static string PushCompleted => "Push が完了しました";
     public static string Exporting => "エクスポート中…";
     public static string ExportCompleted => "エクスポート完了";
     public static string Resetting => "リセット中…";
@@ -37,4 +39,11 @@ public static class AppStrings
     public static string TagSuggestionsDescription => "1 行につき 1 つの tag 候補を入力します。表示時に # を付けます。";
     public static string GoalSuggestionsLabel => "Goal 候補";
     public static string GoalSuggestionsDescription => "1 行につき 1 つの goal 候補を入力します。";
+    public static string SyncModePlanningLabel => "Planning";
+    public static string SyncModeWorkingLabel => "Working";
+    public static string SyncModePlanningDescription => "朝の洗い替え同期";
+    public static string SyncModeWorkingDescription => "日中の差分同期";
+    public static string PullButtonLabel => "Pull";
+    public static string PushButtonLabel => "Push";
+    public static string ResetButtonLabel => "リセット";
 }

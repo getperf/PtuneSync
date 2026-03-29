@@ -24,33 +24,35 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <!-- Title -->
                 <ColumnDefinition Width="*"/>
-                <!-- Filler -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Commands -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Menu -->
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Title -->
             <TextBlock Grid.Column="0"
                        Text="PtuneSync"
                        FontSize="20"
                        FontWeight="SemiBold"
                        VerticalAlignment="Center"/>
 
-            <!-- Commands -->
             <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Spacing="8"
                         VerticalAlignment="Center">
 
-                <Button Content="エクスポート"
-                        Width="120"
+                <Button Content="Pull"
+                        Width="100"
                         Height="36"
-                        Command="{Binding ExportCommand}"/>
+                        Command="{Binding PullCommand}"/>
+
+                <Button Content="Push"
+                        Width="100"
+                        Height="36"
+                        Background="{Binding PushButtonBrush}"
+                        Foreground="White"
+                        Command="{Binding PushCommand}"/>
 
                 <Button Content="リセット"
                         Width="120"
@@ -58,8 +60,14 @@
                         Command="{Binding ResetCommand}"/>
             </StackPanel>
 
-            <!-- Settings Menu -->
-            <Button Grid.Column="3"
+            <TextBlock Grid.Column="3"
+                       Text="{Binding SyncModeInlineText}"
+                       Foreground="{Binding SyncModeBrush}"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="4,0,4,0"/>
+
+            <Button Grid.Column="4"
                     Content="⋯"
                     Width="36"
                     Height="36"

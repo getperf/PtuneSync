@@ -70,6 +70,7 @@ public class GoogleOAuthConfig
 public class OtherSettings
 {
     public bool CheckUpdate { get; set; } = true;
+    public string? LastSuccessfulPushDate { get; set; }
 }
 
 public enum DbLocationMode
