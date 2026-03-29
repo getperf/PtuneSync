@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PtuneSync.Infrastructure;
 using PtuneSync.Services;
+using System.Linq;
 using System.Threading.Tasks;
 using PtuneSync.ViewModels;
 
@@ -114,6 +115,8 @@ namespace PtuneSync.ViewModels
             }
 
             AppConfigManager.Config.Database.LocationMode = result.SelectedMode;
+            AppConfigManager.Config.TaskMetadata.TagSuggestions = result.TagSuggestions.ToList();
+            AppConfigManager.Config.TaskMetadata.GoalSuggestions = result.GoalSuggestions.ToList();
             AppConfigManager.Save();
             StatusMessage = AppStrings.DatabaseSettingsSaved;
         }

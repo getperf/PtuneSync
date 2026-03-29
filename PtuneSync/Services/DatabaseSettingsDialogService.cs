@@ -2,6 +2,9 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using PtuneSync.Infrastructure;
 
 namespace PtuneSync.Services;
@@ -33,29 +36,41 @@ public sealed class DatabaseSettingsDialogService
             IsTextSelectionEnabled = true,
         };
 
+        var tagSuggestionsBox = BuildMultilineTextBox(AppConfigManager.Config.TaskMetadata.TagSuggestions);
+        var goalSuggestionsBox = BuildMultilineTextBox(AppConfigManager.Config.TaskMetadata.GoalSuggestions);
+
         var stack = new StackPanel
         {
             Spacing = 12,
             Children =
             {
+                new TextBlock { Text = AppStrings.DatabaseSectionLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
                 new TextBlock { Text = AppStrings.DatabaseModeLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
                 radioButtons,
-                new InfoBar
-                {
-                    Severity = InfoBarSeverity.Informational,
-                    IsOpen = true,
-                    IsClosable = false,
-                    Message = AppStrings.DatabaseMigrationPending,
-                },
                 new TextBlock { Text = AppStrings.DatabaseCurrentPathLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
                 currentPathText,
+                new TextBlock { Text = AppStrings.TaskMetadataSectionLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0, 12, 0, 0) },
+                new TextBlock { Text = AppStrings.TagSuggestionsLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
+                new TextBlock { Text = AppStrings.TagSuggestionsDescription, TextWrapping = TextWrapping.WrapWholeWords, Opacity = 0.85 },
+                tagSuggestionsBox,
+                new TextBlock { Text = AppStrings.GoalSuggestionsLabel, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
+                new TextBlock { Text = AppStrings.GoalSuggestionsDescription, TextWrapping = TextWrapping.WrapWholeWords, Opacity = 0.85 },
+                goalSuggestionsBox,
             }
+        };
+
+        var scrollViewer = new ScrollViewer
+        {
+            Content = stack,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            MaxHeight = 560,
         };
 
         var dialog = new ContentDialog
         {
             Title = AppStrings.DatabaseSettingsTitle,
-            Content = stack,
+            Content = scrollViewer,
             PrimaryButtonText = AppStrings.DatabaseSettingsPrimary,
             CloseButtonText = AppStrings.Cancel,
         };
@@ -63,11 +78,19 @@ public sealed class DatabaseSettingsDialogService
         var result = await DialogHost.ShowAsync(dialog);
         if (result != ContentDialogResult.Primary)
         {
-            return new DatabaseSettingsDialogResult(false, currentMode);
+            return new DatabaseSettingsDialogResult(
+                false,
+                currentMode,
+                AppConfigManager.Config.TaskMetadata.TagSuggestions,
+                AppConfigManager.Config.TaskMetadata.GoalSuggestions);
         }
 
         var selected = radioButtons.SelectedItem as DatabaseModeOption;
-        return new DatabaseSettingsDialogResult(true, selected?.Mode ?? currentMode);
+        return new DatabaseSettingsDialogResult(
+            true,
+            selected?.Mode ?? currentMode,
+            ParseSuggestionLines(tagSuggestionsBox.Text),
+            ParseSuggestionLines(goalSuggestionsBox.Text));
     }
 
     private static DataTemplate BuildOptionTemplate()
@@ -85,6 +108,31 @@ public sealed class DatabaseSettingsDialogService
     }
 
     private sealed record DatabaseModeOption(DbLocationMode Mode, string Label, string Description, string Path);
+
+    private static TextBox BuildMultilineTextBox(IEnumerable<string> values)
+    {
+        return new TextBox
+        {
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            Height = 120,
+            Text = string.Join(Environment.NewLine, values),
+        };
+    }
+
+    private static List<string> ParseSuggestionLines(string? text)
+    {
+        return (text ?? string.Empty)
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Select(static line => line.Trim())
+            .Where(static line => !string.IsNullOrWhiteSpace(line))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+    }
 }
 
-public sealed record DatabaseSettingsDialogResult(bool Saved, DbLocationMode SelectedMode);
+public sealed record DatabaseSettingsDialogResult(
+    bool Saved,
+    DbLocationMode SelectedMode,
+    IReadOnlyList<string> TagSuggestions,
+    IReadOnlyList<string> GoalSuggestions);

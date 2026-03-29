@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -27,8 +28,9 @@ public static class AppConfigManager
             if (File.Exists(ConfigPath))
             {
                 var json = File.ReadAllText(ConfigPath, Encoding.UTF8);
-                Config = JsonSerializer.Deserialize<AppConfig>(json, CreateOptions())
-                         ?? AppConfig.Default();
+                Config = Normalize(
+                    JsonSerializer.Deserialize<AppConfig>(json, CreateOptions())
+                    ?? AppConfig.Default());
             }
             else
             {
@@ -68,5 +70,23 @@ public static class AppConfigManager
 
         Config.Database.LastVaultHome = normalized;
         Save();
+    }
+
+    private static AppConfig Normalize(AppConfig config)
+    {
+        var defaults = AppConfig.Default();
+
+        config.Logging ??= defaults.Logging;
+        config.GoogleOAuth ??= defaults.GoogleOAuth;
+        config.Database ??= defaults.Database;
+        config.TaskMetadata ??= defaults.TaskMetadata;
+        config.OtherSettings ??= defaults.OtherSettings;
+
+        config.TaskMetadata.TagSuggestions ??=
+            new List<string>(defaults.TaskMetadata.TagSuggestions);
+        config.TaskMetadata.GoalSuggestions ??=
+            new List<string>(defaults.TaskMetadata.GoalSuggestions);
+
+        return config;
     }
 }

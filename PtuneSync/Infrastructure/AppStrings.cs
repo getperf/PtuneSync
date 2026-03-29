@@ -13,15 +13,16 @@ public static class AppStrings
     public static string OpenedLogFolder => "ログフォルダを開きました";
     public static string FailedToOpenLogFolder => "ログフォルダを開けませんでした";
     public static string VersionInfoTitle => "バージョン情報";
-    public static string DatabaseSettingsMenu => "データベース設定";
+    public static string DatabaseSettingsMenu => "アプリ設定";
     public static string ReauthenticateMenu => "再認証";
     public static string OpenLogFolderMenu => "ログフォルダを開く";
     public static string VersionInfoMenu => "バージョン情報";
-    public static string DatabaseSettingsTitle => "データベース保存先";
+    public static string DatabaseSettingsTitle => "アプリ設定";
     public static string DatabaseSettingsPrimary => "保存";
     public static string Cancel => "キャンセル";
-    public static string DatabaseSettingsSaved => "データベース設定を保存しました";
-    public static string DatabaseSettingsUnchanged => "データベース設定は変更されませんでした";
+    public static string DatabaseSettingsSaved => "アプリ設定を保存しました";
+    public static string DatabaseSettingsUnchanged => "アプリ設定は変更されませんでした";
+    public static string DatabaseSectionLabel => "データベース設定";
     public static string DatabaseModeLabel => "保存先";
     public static string DatabaseCurrentPathLabel => "現在のデータベースパス";
     public static string DatabasePathPendingLabel => "現在のデータベースパス";
@@ -31,4 +32,9 @@ public static class AppStrings
     public static string DatabaseAppLocalDescription => "SQLite の安定運用向きです。Vault 同期の競合を避けやすくなります。";
     public static string DatabaseVaultWorkDescription => "Vault と一緒にバックアップしやすくなります。同期ツールとの競合には注意が必要です。";
     public static string DatabaseMigrationPending => "DB の初期化とコピー切替は次の実装段階で有効になります。今回は設定保存のみ行います。";
+    public static string TaskMetadataSectionLabel => "タスク編集候補";
+    public static string TagSuggestionsLabel => "Tag 候補";
+    public static string TagSuggestionsDescription => "1 行につき 1 つの tag 候補を入力します。表示時に # を付けます。";
+    public static string GoalSuggestionsLabel => "Goal 候補";
+    public static string GoalSuggestionsDescription => "1 行につき 1 つの goal 候補を入力します。";
 }

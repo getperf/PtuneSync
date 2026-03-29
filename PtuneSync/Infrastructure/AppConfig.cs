@@ -1,10 +1,13 @@
 namespace PtuneSync.Infrastructure;
 
+using System.Collections.Generic;
+
 public class AppConfig
 {
     public LoggingConfig Logging { get; set; } = new();
     public GoogleOAuthConfig GoogleOAuth { get; set; } = new();
     public DatabaseSettings Database { get; set; } = new();
+    public TaskMetadataSettings TaskMetadata { get; set; } = new();
     public OtherSettings OtherSettings { get; set; } = new();
 
     public static AppConfig Default() => new AppConfig
@@ -23,6 +26,26 @@ public class AppConfig
         Database = new DatabaseSettings
         {
             LocationMode = DbLocationMode.AppLocal
+        },
+        TaskMetadata = new TaskMetadataSettings
+        {
+            TagSuggestions =
+            {
+                "設計",
+                "調査",
+                "試作",
+                "実装",
+                "検証",
+            },
+            GoalSuggestions =
+            {
+                "仕様確定",
+                "設計整理完了",
+                "実装完了",
+                "テスト追加完了",
+                "リファクタリング完了",
+                "バグ修正完了",
+            }
         },
         OtherSettings = new OtherSettings
         {
@@ -59,4 +82,10 @@ public class DatabaseSettings
 {
     public DbLocationMode LocationMode { get; set; } = DbLocationMode.AppLocal;
     public string LastVaultHome { get; set; } = "";
+}
+
+public class TaskMetadataSettings
+{
+    public List<string> TagSuggestions { get; set; } = new();
+    public List<string> GoalSuggestions { get; set; } = new();
 }
