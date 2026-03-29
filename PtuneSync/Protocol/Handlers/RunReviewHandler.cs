@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using PtuneSync.Infrastructure;
@@ -81,7 +82,20 @@ public sealed class RunReviewHandler : IProtocolHandler
                         date = result.Date,
                         list = result.ListName,
                         exported_at = result.ExportedAt,
-                        tasks = result.Tasks,
+                        tasks = result.Tasks.Select(static task => new
+                        {
+                            id = task.Id,
+                            title = task.Title,
+                            pomodoro_planned = task.Pomodoro?.Planned,
+                            pomodoro_actual = task.Pomodoro?.Actual,
+                            review_flags = task.ReviewFlags?.ToArray() ?? Array.Empty<string>(),
+                            started = task.Started,
+                            completed = task.Completed,
+                            status = task.Status,
+                            parent = task.Parent,
+                            tags = task.Tags?.ToArray() ?? Array.Empty<string>(),
+                            goal = task.Goal,
+                        }).ToArray(),
                         meta = new
                         {
                             task_count = result.Tasks.Count,
