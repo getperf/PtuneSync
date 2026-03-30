@@ -3,9 +3,11 @@ using CommunityToolkit.Mvvm.Messaging;
 
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Linq;
 using PtuneSync.Infrastructure;
 using PtuneSync.Messages;
 using PtuneSync.Models;
+using System;
 
 namespace PtuneSync.ViewModels;
 
@@ -110,7 +112,60 @@ public partial class TaskEditorViewModel : ObservableRecipient
 
         foreach (var task in Tasks)
         {
+            var selectedTags = task.GetSelectedTags();
             task.InitializeMetadataSuggestions(_tagSuggestions, _goalSuggestions);
+            task.SetSelectedTags(selectedTags);
+        }
+    }
+
+    public void LoadFromMyTasks(IEnumerable<MyTask> tasks)
+    {
+        Tasks.Clear();
+
+        foreach (var source in tasks)
+        {
+            if (string.IsNullOrWhiteSpace(source.Title))
+            {
+                continue;
+            }
+
+            var task = new TaskItem
+            {
+                Title = source.Title,
+                IsChild = !string.IsNullOrWhiteSpace(source.Parent),
+                PlannedPomodoroCount = source.Pomodoro?.Planned ?? 0,
+                Goal = source.Goal,
+                RemoteId = string.IsNullOrWhiteSpace(source.Id) ? null : source.Id,
+                RemoteParentId = source.Parent,
+                Status = string.IsNullOrWhiteSpace(source.Status) ? "needsAction" : source.Status,
+                Started = source.Started,
+                Completed = source.Completed,
+                Due = source.Due,
+            };
+
+            var mergedTagSuggestions = _tagSuggestions
+                .Concat(source.Tags ?? Enumerable.Empty<string>())
+                .Where(static tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(static tag => tag.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            task.InitializeMetadataSuggestions(mergedTagSuggestions, _goalSuggestions);
+            task.SetSelectedTags(source.Tags);
+
+            Tasks.Add(task);
+        }
+
+        RefreshIndexes();
+
+        foreach (var task in Tasks)
+        {
+            task.IsInitializing = false;
+        }
+
+        if (Tasks.Count > 0 && Tasks[0].IsChild)
+        {
+            Tasks[0].ForceSetIsChild(false);
         }
     }
 }

@@ -16,7 +16,7 @@ public class GoogleTasksAPI
 {
     private readonly OAuthManager _oauthManager;
 
-    public const string DefaultTodayListName = "Today";
+    public const string DefaultTodayListName = "_Today";
 
     public GoogleTasksAPI(OAuthManager oauthManager)
     {

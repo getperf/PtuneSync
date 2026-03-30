@@ -3,11 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 using PtuneSync.Infrastructure;
+using PtuneSync.GoogleTasks;
+using PtuneSync.Protocol;
 using PtuneSync.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using PtuneSync.ViewModels;
 
 namespace PtuneSync.ViewModels
 {
@@ -19,11 +20,16 @@ namespace PtuneSync.ViewModels
 
     public partial class MainViewModel : ObservableObject
     {
-        private readonly ExportService _exportService;
         private readonly ResetService _resetService;
         private readonly ReauthService _reauthService;
         private readonly SystemOpenerService _opener;
         private readonly DatabaseSettingsDialogService _databaseSettingsDialogService;
+        private readonly PullCommandService _pullCommandService;
+        private readonly DiffCommandService _diffCommandService;
+        private readonly PushCommandService _pushCommandService;
+        private readonly TaskEditorSyncDocumentService _taskEditorSyncDocumentService;
+        private readonly UserDialogService _dialogService;
+        private string _currentListName = GoogleTasksAPI.DefaultTodayListName;
 
         public TaskEditorViewModel Editor { get; } = new TaskEditorViewModel();
 
@@ -73,11 +79,15 @@ namespace PtuneSync.ViewModels
 
         public MainViewModel()
         {
-            _exportService = new ExportService();
             _resetService = new ResetService();
             _reauthService = new ReauthService();
             _opener = new SystemOpenerService();
             _databaseSettingsDialogService = new DatabaseSettingsDialogService();
+            _pullCommandService = new PullCommandService();
+            _diffCommandService = new DiffCommandService();
+            _pushCommandService = new PushCommandService();
+            _taskEditorSyncDocumentService = new TaskEditorSyncDocumentService();
+            _dialogService = new UserDialogService();
             RefreshSyncMode();
         }
 
@@ -88,19 +98,6 @@ namespace PtuneSync.ViewModels
             CurrentSyncMode = AppConfigManager.Config.OtherSettings.LastSuccessfulPushDate == TodayLocalDate()
                 ? SyncMode.Working
                 : SyncMode.Planning;
-        }
-
-        // ★ Export コマンドで Editor.Tasks を利用
-        [RelayCommand]
-        private async Task ExportAsync()
-        {
-            StatusMessage = AppStrings.Exporting;
-
-            var result = await _exportService.ExecuteAsync(Editor.Tasks);
-
-            StatusMessage = result.Success
-                ? AppStrings.ExportCompleted
-                : $"失敗: {result.Message}";
         }
 
         [RelayCommand]
@@ -121,20 +118,67 @@ namespace PtuneSync.ViewModels
         }
 
         [RelayCommand]
-        private Task PullAsync()
+        private async Task PullAsync()
         {
-            StatusMessage = AppStrings.PullCompleted;
-            return Task.CompletedTask;
+            StatusMessage = AppStrings.Pulling;
+
+            try
+            {
+                var result = await _pullCommandService.ExecuteAsync(BuildPullRequest(includeCompleted: false));
+                _currentListName = result.ListName;
+                Editor.LoadFromMyTasks(result.ResponseTasks);
+                StatusMessage = $"Pull 完了: {result.ResponseTasks.Count} 件";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Pull に失敗しました: {ex.Message}";
+            }
         }
 
         [RelayCommand]
-        private Task PushAsync()
+        private async Task PushAsync()
         {
-            AppConfigManager.Config.OtherSettings.LastSuccessfulPushDate = TodayLocalDate();
-            AppConfigManager.Save();
-            RefreshSyncMode();
-            StatusMessage = AppStrings.PushCompleted;
-            return Task.CompletedTask;
+            if (Editor.Tasks.Count == 0)
+            {
+                StatusMessage = "Push 対象のタスクがありません";
+                return;
+            }
+
+            try
+            {
+                StatusMessage = AppStrings.PushPreparing;
+
+                var taskJsonFile = await _taskEditorSyncDocumentService.WriteTaskJsonAsync(Editor.Tasks);
+                var allowDelete = CurrentSyncMode == SyncMode.Planning;
+                var diffRequest = BuildDiffOrPushRequest(taskJsonFile, allowDelete);
+                var diff = await _diffCommandService.ExecuteAsync(diffRequest);
+
+                var confirmed = await _dialogService.ConfirmDiffAsync(diff, allowDelete);
+                if (!confirmed)
+                {
+                    StatusMessage = diff.Summary.Errors > 0
+                        ? "Diff エラーのため Push を中止しました"
+                        : "Push をキャンセルしました";
+                    return;
+                }
+
+                StatusMessage = AppStrings.PushRunning;
+                await _pushCommandService.ExecuteAsync(diffRequest);
+
+                AppConfigManager.Config.OtherSettings.LastSuccessfulPushDate = TodayLocalDate();
+                AppConfigManager.Save();
+                RefreshSyncMode();
+
+                var refreshed = await _pullCommandService.ExecuteAsync(BuildPullRequest(includeCompleted: false));
+                _currentListName = refreshed.ListName;
+                Editor.LoadFromMyTasks(refreshed.ResponseTasks);
+
+                StatusMessage = $"Push 完了: +{diff.Summary.Create} / ~{diff.Summary.Update} / -{diff.Summary.Delete}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Push に失敗しました: {ex.Message}";
+            }
         }
 
         [RelayCommand]
@@ -196,6 +240,36 @@ namespace PtuneSync.ViewModels
             Editor.ReloadSuggestions();
             RefreshSyncMode();
             StatusMessage = AppStrings.DatabaseSettingsSaved;
+        }
+
+        private RunRequestFile BuildPullRequest(bool includeCompleted)
+        {
+            return new RunRequestFile
+            {
+                Home = AppPaths.VaultHome,
+                Args = new RunRequestArgs
+                {
+                    List = _currentListName,
+                    IncludeCompleted = includeCompleted,
+                },
+            };
+        }
+
+        private RunRequestFile BuildDiffOrPushRequest(string taskJsonFile, bool allowDelete)
+        {
+            return new RunRequestFile
+            {
+                Home = AppPaths.VaultHome,
+                Input = new RunRequestInput
+                {
+                    TaskJsonFile = taskJsonFile,
+                },
+                Args = new RunRequestArgs
+                {
+                    List = _currentListName,
+                    AllowDelete = allowDelete,
+                },
+            };
         }
     }
 }

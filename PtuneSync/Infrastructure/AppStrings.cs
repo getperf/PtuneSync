@@ -3,7 +3,10 @@ namespace PtuneSync.Infrastructure;
 public static class AppStrings
 {
     public static string Ready => "準備完了";
+    public static string Pulling => "Pull 実行中…";
     public static string PullCompleted => "Pull を実行しました";
+    public static string PushPreparing => "Push の差分を確認中…";
+    public static string PushRunning => "Push 実行中…";
     public static string PushCompleted => "Push が完了しました";
     public static string Exporting => "エクスポート中…";
     public static string ExportCompleted => "エクスポート完了";

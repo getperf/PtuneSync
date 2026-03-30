@@ -56,6 +56,18 @@ public class TaskItem : INotifyPropertyChanged
         }
     }
 
+    public string? RemoteId { get; set; }
+
+    public string? RemoteParentId { get; set; }
+
+    public string Status { get; set; } = "needsAction";
+
+    public string? Started { get; set; }
+
+    public string? Completed { get; set; }
+
+    public string? Due { get; set; }
+
     // ★ 初期化中は 1 行目ガード無効化
     public bool IsChild
     {
@@ -148,6 +160,28 @@ public class TaskItem : INotifyPropertyChanged
             return;
 
         item.IsSelected = !item.IsSelected;
+    }
+
+    public IReadOnlyList<string> GetSelectedTags()
+    {
+        return TagSuggestions
+            .Where(static option => option.IsSelected)
+            .Select(static option => option.Name)
+            .ToList();
+    }
+
+    public void SetSelectedTags(IEnumerable<string>? tags)
+    {
+        var selected = new HashSet<string>(
+            tags?.Where(static tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(static tag => tag.Trim())
+                ?? Enumerable.Empty<string>(),
+            System.StringComparer.Ordinal);
+
+        foreach (var item in TagSuggestions)
+        {
+            item.IsSelected = selected.Contains(item.Name);
+        }
     }
 
     public void CycleGoal()
