@@ -124,9 +124,10 @@ namespace PtuneSync.ViewModels
 
             try
             {
-                var result = await _pullCommandService.ExecuteAsync(BuildPullRequest(includeCompleted: false));
+                var includeCompleted = CurrentSyncMode == SyncMode.Working;
+                var result = await _pullCommandService.ExecuteAsync(BuildPullRequest(includeCompleted));
                 _currentListName = result.ListName;
-                Editor.LoadFromMyTasks(result.ResponseTasks);
+                ApplyPullResult(result.ResponseTasks);
                 StatusMessage = $"Pull 完了: {result.ResponseTasks.Count} 件";
             }
             catch (Exception ex)
@@ -169,9 +170,9 @@ namespace PtuneSync.ViewModels
                 AppConfigManager.Save();
                 RefreshSyncMode();
 
-                var refreshed = await _pullCommandService.ExecuteAsync(BuildPullRequest(includeCompleted: false));
+                var refreshed = await _pullCommandService.ExecuteAsync(BuildPullRequest(CurrentSyncMode == SyncMode.Working));
                 _currentListName = refreshed.ListName;
-                Editor.LoadFromMyTasks(refreshed.ResponseTasks);
+                ApplyPullResult(refreshed.ResponseTasks);
 
                 StatusMessage = $"Push 完了: +{diff.Summary.Create} / ~{diff.Summary.Update} / -{diff.Summary.Delete}";
             }
@@ -253,6 +254,17 @@ namespace PtuneSync.ViewModels
                     IncludeCompleted = includeCompleted,
                 },
             };
+        }
+
+        private void ApplyPullResult(System.Collections.Generic.IReadOnlyCollection<Models.MyTask> tasks)
+        {
+            if (CurrentSyncMode == SyncMode.Working)
+            {
+                Editor.MergeFromMyTasks(tasks);
+                return;
+            }
+
+            Editor.LoadFromMyTasks(tasks);
         }
 
         private RunRequestFile BuildDiffOrPushRequest(string taskJsonFile, bool allowDelete)

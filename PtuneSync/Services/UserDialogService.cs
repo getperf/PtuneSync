@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using PtuneSync.Services;
 
 namespace PtuneSync.Infrastructure;
@@ -57,12 +59,12 @@ public class UserDialogService
 
         if (diff.Errors.Count > 0)
         {
-            details += $"{Environment.NewLine}{Environment.NewLine}=== Errors ==={Environment.NewLine}{string.Join(Environment.NewLine, diff.Errors)}";
+            details += $"{Environment.NewLine}{Environment.NewLine}=== エラー詳細 ==={Environment.NewLine}{string.Join(Environment.NewLine, diff.Errors)}";
         }
 
         if (diff.Warnings.Count > 0)
         {
-            details += $"{Environment.NewLine}{Environment.NewLine}=== Warnings ==={Environment.NewLine}{string.Join(Environment.NewLine, diff.Warnings)}";
+            details += $"{Environment.NewLine}{Environment.NewLine}=== 警告詳細 ==={Environment.NewLine}{string.Join(Environment.NewLine, diff.Warnings.Select(FormatWarningMessage))}";
         }
 
         var content = new StackPanel
@@ -103,5 +105,29 @@ public class UserDialogService
 
         var result = await dialog.ShowAsync();
         return diff.Summary.Errors == 0 && result == ContentDialogResult.Primary;
+    }
+
+    private static string FormatWarningMessage(string warning)
+    {
+        const string completedTaskPrefix = "Skip reopen completed task: ";
+        if (warning.StartsWith(completedTaskPrefix, StringComparison.Ordinal))
+        {
+            var payload = warning[completedTaskPrefix.Length..];
+            var title = ExtractTaskTitle(payload);
+            return $"完了済みタスクは未完了に戻さず、そのまま維持します: {title}";
+        }
+
+        return warning;
+    }
+
+    private static string ExtractTaskTitle(string payload)
+    {
+        var index = payload.LastIndexOf(" (", StringComparison.Ordinal);
+        if (index <= 0)
+        {
+            return payload.Trim();
+        }
+
+        return payload[..index].Trim();
     }
 }

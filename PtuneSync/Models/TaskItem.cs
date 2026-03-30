@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 namespace PtuneSync.Models;
 
@@ -13,7 +15,9 @@ public class TaskItem : INotifyPropertyChanged
     private string _title = string.Empty;
     private bool _isChild;
     private int _plannedPomodoroCount;
+    private string _status = "needsAction";
     private string? _goal;
+    private string? _completed;
     private int _goalSuggestionIndex = -1;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -60,13 +64,43 @@ public class TaskItem : INotifyPropertyChanged
 
     public string? RemoteParentId { get; set; }
 
-    public string Status { get; set; } = "needsAction";
+    public string Status
+    {
+        get => _status;
+        set
+        {
+            if (_status == value) return;
+            _status = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCompleted));
+            OnPropertyChanged(nameof(TitleForeground));
+        }
+    }
 
     public string? Started { get; set; }
 
-    public string? Completed { get; set; }
+    public string? Completed
+    {
+        get => _completed;
+        set
+        {
+            if (_completed == value) return;
+            _completed = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCompleted));
+            OnPropertyChanged(nameof(TitleForeground));
+        }
+    }
 
     public string? Due { get; set; }
+
+    public bool IsCompleted =>
+        string.Equals(Status, "completed", System.StringComparison.OrdinalIgnoreCase)
+        || !string.IsNullOrWhiteSpace(Completed);
+
+    public Brush TitleForeground => IsCompleted
+        ? new SolidColorBrush(ColorHelper.FromArgb(255, 0x8A, 0x8F, 0x98))
+        : new SolidColorBrush(Colors.Black);
 
     // ★ 初期化中は 1 行目ガード無効化
     public bool IsChild

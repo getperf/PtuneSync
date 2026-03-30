@@ -122,6 +122,63 @@ public partial class TaskEditorViewModel : ObservableRecipient
     {
         Tasks.Clear();
 
+        foreach (var task in BuildTaskItems(tasks))
+        {
+            Tasks.Add(task);
+        }
+
+        FinalizeTaskLayout();
+    }
+
+    public void MergeFromMyTasks(IEnumerable<MyTask> tasks)
+    {
+        var pulledTasks = BuildTaskItems(tasks).ToList();
+        var existingByRemoteId = Tasks
+            .Where(static task => !string.IsNullOrWhiteSpace(task.RemoteId))
+            .GroupBy(static task => task.RemoteId!, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
+        var existingByTitleKey = BuildTitleKeyMap(Tasks);
+        string? currentPulledParentTitle = null;
+
+        foreach (var pulled in pulledTasks)
+        {
+            if (!string.IsNullOrWhiteSpace(pulled.RemoteId)
+                && existingByRemoteId.TryGetValue(pulled.RemoteId, out var existing))
+            {
+                CopyTaskState(existing, pulled);
+                if (!pulled.IsChild)
+                {
+                    currentPulledParentTitle = NormalizeTitle(pulled.Title);
+                }
+                continue;
+            }
+
+            var titleKey = BuildTitleKey(pulled, currentPulledParentTitle);
+            if (existingByTitleKey.TryGetValue(titleKey, out var matchedTasks)
+                && matchedTasks.Count > 0)
+            {
+                var existingByTitle = matchedTasks.Dequeue();
+                CopyTaskState(existingByTitle, pulled);
+                if (!pulled.IsChild)
+                {
+                    currentPulledParentTitle = NormalizeTitle(pulled.Title);
+                }
+                continue;
+            }
+
+            pulled.IsInitializing = false;
+            Tasks.Add(pulled);
+            if (!pulled.IsChild)
+            {
+                currentPulledParentTitle = NormalizeTitle(pulled.Title);
+            }
+        }
+
+        FinalizeTaskLayout();
+    }
+
+    private IEnumerable<TaskItem> BuildTaskItems(IEnumerable<MyTask> tasks)
+    {
         foreach (var source in tasks)
         {
             if (string.IsNullOrWhiteSpace(source.Title))
@@ -129,33 +186,56 @@ public partial class TaskEditorViewModel : ObservableRecipient
                 continue;
             }
 
-            var task = new TaskItem
-            {
-                Title = source.Title,
-                IsChild = !string.IsNullOrWhiteSpace(source.Parent),
-                PlannedPomodoroCount = source.Pomodoro?.Planned ?? 0,
-                Goal = source.Goal,
-                RemoteId = string.IsNullOrWhiteSpace(source.Id) ? null : source.Id,
-                RemoteParentId = source.Parent,
-                Status = string.IsNullOrWhiteSpace(source.Status) ? "needsAction" : source.Status,
-                Started = source.Started,
-                Completed = source.Completed,
-                Due = source.Due,
-            };
-
-            var mergedTagSuggestions = _tagSuggestions
-                .Concat(source.Tags ?? Enumerable.Empty<string>())
-                .Where(static tag => !string.IsNullOrWhiteSpace(tag))
-                .Select(static tag => tag.Trim())
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
-
-            task.InitializeMetadataSuggestions(mergedTagSuggestions, _goalSuggestions);
-            task.SetSelectedTags(source.Tags);
-
-            Tasks.Add(task);
+            var task = new TaskItem();
+            CopyTaskState(task, source);
+            yield return task;
         }
+    }
 
+    private void CopyTaskState(TaskItem target, MyTask source)
+    {
+        target.Title = source.Title;
+        target.IsChild = !string.IsNullOrWhiteSpace(source.Parent);
+        target.PlannedPomodoroCount = source.Pomodoro?.Planned ?? 0;
+        target.Goal = source.Goal;
+        target.RemoteId = string.IsNullOrWhiteSpace(source.Id) ? null : source.Id;
+        target.RemoteParentId = source.Parent;
+        target.Status = string.IsNullOrWhiteSpace(source.Status) ? "needsAction" : source.Status;
+        target.Started = source.Started;
+        target.Completed = source.Completed;
+        target.Due = source.Due;
+
+        var mergedTagSuggestions = _tagSuggestions
+            .Concat(source.Tags ?? Enumerable.Empty<string>())
+            .Where(static tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(static tag => tag.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        target.InitializeMetadataSuggestions(mergedTagSuggestions, _goalSuggestions);
+        target.SetSelectedTags(source.Tags);
+    }
+
+    private void CopyTaskState(TaskItem target, TaskItem source)
+    {
+        target.Title = source.Title;
+        target.IsChild = source.IsChild;
+        target.PlannedPomodoroCount = source.PlannedPomodoroCount;
+        target.Goal = source.Goal;
+        target.RemoteId = source.RemoteId;
+        target.RemoteParentId = source.RemoteParentId;
+        target.Status = source.Status;
+        target.Started = source.Started;
+        target.Completed = source.Completed;
+        target.Due = source.Due;
+        target.InitializeMetadataSuggestions(
+            source.TagSuggestions.Select(static item => item.Name),
+            _goalSuggestions);
+        target.SetSelectedTags(source.GetSelectedTags());
+    }
+
+    private void FinalizeTaskLayout()
+    {
         RefreshIndexes();
 
         foreach (var task in Tasks)
@@ -167,5 +247,49 @@ public partial class TaskEditorViewModel : ObservableRecipient
         {
             Tasks[0].ForceSetIsChild(false);
         }
+    }
+
+    private static Dictionary<string, Queue<TaskItem>> BuildTitleKeyMap(IEnumerable<TaskItem> tasks)
+    {
+        var result = new Dictionary<string, Queue<TaskItem>>(StringComparer.Ordinal);
+        string? currentParentTitle = null;
+
+        foreach (var task in tasks)
+        {
+            if (string.IsNullOrWhiteSpace(task.RemoteId))
+            {
+                var titleKey = BuildTitleKey(task, currentParentTitle);
+                if (!result.TryGetValue(titleKey, out var queue))
+                {
+                    queue = new Queue<TaskItem>();
+                    result[titleKey] = queue;
+                }
+
+                queue.Enqueue(task);
+            }
+
+            if (!task.IsChild)
+            {
+                currentParentTitle = NormalizeTitle(task.Title);
+            }
+        }
+
+        return result;
+    }
+
+    private static string BuildTitleKey(TaskItem task, string? currentParentTitle)
+    {
+        var normalizedTitle = NormalizeTitle(task.Title);
+        if (task.IsChild)
+        {
+            return $"{currentParentTitle ?? string.Empty}__{normalizedTitle}";
+        }
+
+        return normalizedTitle;
+    }
+
+    private static string NormalizeTitle(string? title)
+    {
+        return string.IsNullOrWhiteSpace(title) ? string.Empty : title.Trim();
     }
 }

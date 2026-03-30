@@ -13,7 +13,7 @@
     <Grid Padding="24">
         <StackPanel Spacing="16">
 
-            <TextBlock Text="Task Export"
+            <TextBlock Text="今日のタスク"
                        FontSize="20"
                        FontWeight="SemiBold" />
 
@@ -41,11 +41,11 @@
                                     HorizontalAlignment="Center"
                                     Click="OnDeleteTaskClicked" />
 
-                            <!-- タイトル -->
                             <TextBox Grid.Row="0"
                                     Grid.Column="1"
                                     Margin="{x:Bind Indent, Mode=OneWay}"
                                     Text="{x:Bind Title, Mode=TwoWay}"
+                                    Foreground="{x:Bind TitleForeground, Mode=OneWay}"
                                     Height="36"
                                     HorizontalAlignment="Stretch"/>
 
