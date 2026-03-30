@@ -29,6 +29,7 @@ namespace PtuneSync.ViewModels
         private readonly PushCommandService _pushCommandService;
         private readonly TaskEditorSyncDocumentService _taskEditorSyncDocumentService;
         private readonly UserDialogService _dialogService;
+        private readonly ReviewReportDialogService _reviewReportDialogService;
         private string _currentListName = GoogleTasksAPI.DefaultTodayListName;
 
         public TaskEditorViewModel Editor { get; } = new TaskEditorViewModel();
@@ -88,6 +89,7 @@ namespace PtuneSync.ViewModels
             _pushCommandService = new PushCommandService();
             _taskEditorSyncDocumentService = new TaskEditorSyncDocumentService();
             _dialogService = new UserDialogService();
+            _reviewReportDialogService = new ReviewReportDialogService();
             RefreshSyncMode();
         }
 
@@ -241,6 +243,20 @@ namespace PtuneSync.ViewModels
             Editor.ReloadSuggestions();
             RefreshSyncMode();
             StatusMessage = AppStrings.DatabaseSettingsSaved;
+        }
+
+        [RelayCommand]
+        private async Task ShowReviewReport()
+        {
+            try
+            {
+                await _reviewReportDialogService.ShowAsync(_currentListName);
+                StatusMessage = "振り返りレポートを表示しました";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"振り返りレポートの表示に失敗しました: {ex.Message}";
+            }
         }
 
         private RunRequestFile BuildPullRequest(bool includeCompleted)

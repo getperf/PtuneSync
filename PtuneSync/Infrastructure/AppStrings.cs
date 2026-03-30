@@ -21,6 +21,7 @@ public static class AppStrings
     public static string DatabaseSettingsMenu => "アプリ設定";
     public static string ReauthenticateMenu => "再認証";
     public static string OpenLogFolderMenu => "ログフォルダを開く";
+    public static string ReviewReportMenu => "振り返りレポート";
     public static string VersionInfoMenu => "バージョン情報";
     public static string DatabaseSettingsTitle => "アプリ設定";
     public static string DatabaseSettingsPrimary => "保存";
@@ -49,4 +50,12 @@ public static class AppStrings
     public static string PullButtonLabel => "Pull";
     public static string PushButtonLabel => "Push";
     public static string ResetButtonLabel => "リセット";
+    public static string ReviewReportTitle => "振り返りレポート";
+    public static string ReviewReportDateLabel => "対象日";
+    public static string ReviewReportRunButton => "実行";
+    public static string ReviewReportCopyButton => "Markdown をコピー";
+    public static string ReviewReportCloseButton => "閉じる";
+    public static string ReviewReportLoading => "レポートを生成しています…";
+    public static string ReviewReportNoData => "指定日の pull 履歴がありません。";
+    public static string ReviewReportCopied => "Markdown テーブルをコピーしました。";
 }

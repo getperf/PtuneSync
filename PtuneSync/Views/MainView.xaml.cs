@@ -51,6 +51,12 @@ namespace PtuneSync.Views
                 Command = vm.OpenLogFolderCommand
             });
 
+            flyout.Items.Add(new MenuFlyoutItem
+            {
+                Text = AppStrings.ReviewReportMenu,
+                Command = vm.ShowReviewReportCommand
+            });
+
             flyout.Items.Add(new MenuFlyoutSeparator());
 
             flyout.Items.Add(new MenuFlyoutItem
