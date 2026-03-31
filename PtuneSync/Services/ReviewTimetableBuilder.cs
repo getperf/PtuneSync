@@ -33,7 +33,7 @@ public sealed class ReviewTimetableBuilder
         var snapshotText = string.IsNullOrWhiteSpace(result.SnapshotAt)
             ? "-"
             : FormatDateTime(result.SnapshotAt);
-        return $"対象日: {result.Date}  スナップショット: {snapshotText}  件数: {result.Tasks.Count}";
+        return $"スナップショット: {snapshotText}  件数: {result.Tasks.Count}";
     }
 
     private static IReadOnlyList<ReviewTimetableRow> BuildRows(IReadOnlyList<MyTask> tasks)
