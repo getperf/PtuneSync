@@ -80,7 +80,7 @@ public sealed class ReviewTimetableBuilder
     {
         rows.Add(new ReviewTimetableRow(
             IsCompleted(task),
-            IsCompleted(task) ? "完了" : "未完",
+            IsCompleted(task) ? "✅" : string.Empty,
             $"{new string(' ', depth * 2)}{task.Title}",
             $"{new string(' ', depth * 2)}{task.Title}",
             FormatPomodoro(task.Pomodoro?.Planned),

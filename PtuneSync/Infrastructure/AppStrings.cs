@@ -53,7 +53,7 @@ public static class AppStrings
     public static string ReviewReportTitle => "振り返りレポート";
     public static string ReviewReportDateLabel => "対象日";
     public static string ReviewReportRunButton => "実行";
-    public static string ReviewReportCopyButton => "Markdown をコピー";
+    public static string ReviewReportCopyButton => "コピー";
     public static string ReviewReportCloseButton => "閉じる";
     public static string ReviewReportLoading => "レポートを生成しています…";
     public static string ReviewReportNoData => "指定日の pull 履歴がありません。";
