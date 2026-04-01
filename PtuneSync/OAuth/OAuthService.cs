@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.System;
+using PtuneSync.Infrastructure.Auth;
 using PtuneSync.Infrastructure;
 
 namespace PtuneSync.OAuth;
@@ -13,45 +14,68 @@ namespace PtuneSync.OAuth;
 public class OAuthService
 {
     private readonly GoogleOAuthConfig _config;
+    private readonly AuthSessionStore _sessionStore;
     private string? _codeVerifier;
+    private string? _state;
 
-    public OAuthService(GoogleOAuthConfig config) => _config = config;
+    public OAuthService(GoogleOAuthConfig config, AuthSessionStore? sessionStore = null)
+    {
+        _config = config;
+        _sessionStore = sessionStore ?? new AuthSessionStore();
+    }
 
-    public async Task<OAuthToken> AuthorizeAndGetTokenAsync()
+    public async Task<OAuthToken> AuthorizeAndGetTokenAsync(string profileKey, string? requestNonce)
     {
         AppLog.Info("[OAuthService] AuthorizeAndGetTokenAsync start");
 
         _codeVerifier = GenerateRandomString(64);
-        var codeChallenge = Base64UrlEncode(ComputeSha256(_codeVerifier));
+        _state = GenerateRandomString(48);
+        var session = await _sessionStore.CreatePendingAsync(profileKey, requestNonce, _state);
+        try
+        {
+            var codeChallenge = Base64UrlEncode(ComputeSha256(_codeVerifier));
 
-        string authUrl =
-            "https://accounts.google.com/o/oauth2/v2/auth" +
-            $"?response_type=code&client_id={Uri.EscapeDataString(_config.ClientId)}" +
-            $"&redirect_uri={Uri.EscapeDataString(_config.RedirectUri)}" +
-            $"&scope={Uri.EscapeDataString(_config.Scope)}" +
-            $"&access_type=offline&code_challenge={codeChallenge}&code_challenge_method=S256";
+            string authUrl =
+                "https://accounts.google.com/o/oauth2/v2/auth" +
+                $"?response_type=code&client_id={Uri.EscapeDataString(_config.ClientId)}" +
+                $"&redirect_uri={Uri.EscapeDataString(_config.RedirectUri)}" +
+                $"&scope={Uri.EscapeDataString(_config.Scope)}" +
+                $"&access_type=offline" +
+                $"&prompt=consent" +
+                $"&state={Uri.EscapeDataString(_state)}" +
+                $"&code_challenge={codeChallenge}&code_challenge_method=S256";
 
-        AppLog.Debug("[OAuthService] Launching browser: {0}", authUrl);
-        bool ok = await Launcher.LaunchUriAsync(new Uri(authUrl));
-        if (!ok) throw new Exception("Browser launch failed");
+            AppLog.Debug("[OAuthService] Launching browser: {0}", authUrl);
+            bool ok = await Launcher.LaunchUriAsync(new Uri(authUrl));
+            if (!ok) throw new Exception("Browser launch failed");
 
-        AppLog.Debug("[OAuthService] Waiting for redirect...");
-        var redirectUri = await RedirectSignal.WaitAsync(TimeSpan.FromMinutes(5));
-        AppLog.Debug("[OAuthService] Redirect received: {0}", redirectUri);
+            AppLog.Debug("[OAuthService] Waiting for redirect via auth session. sessionId={SessionId}", session.SessionId);
+            var redirectUri = await _sessionStore.WaitForRedirectAsync(profileKey, session.SessionId, TimeSpan.FromMinutes(5));
+            AppLog.Debug("[OAuthService] Redirect received: {0}", redirectUri);
 
-        var token = await ExchangeCodeForTokenAsync(redirectUri);
+            var token = await ExchangeCodeForTokenAsync(redirectUri);
+            await _sessionStore.MarkCompletedAsync(profileKey, session.SessionId);
 
-        // 安全なログ出力（長さを確認）
-        var safeAccess = string.IsNullOrEmpty(token.AccessToken)
-            ? "<empty>"
-            : token.AccessToken[..Math.Min(20, token.AccessToken.Length)];
-        AppLog.Info("[OAuthService] Access token acquired: {0}", safeAccess);
+            var safeAccess = string.IsNullOrEmpty(token.AccessToken)
+                ? "<empty>"
+                : token.AccessToken[..Math.Min(20, token.AccessToken.Length)];
+            AppLog.Info("[OAuthService] Access token acquired: {0}", safeAccess);
 
-        WindowsNotifier.Show(
-            "Google 認証が完了しました",
-            "ブラウザを閉じて、PtuneSync に戻ってください。"
-        );
-        return token;
+            WindowsNotifier.Show(
+                "Google 認証が完了しました",
+                "ブラウザを閉じて、PtuneSync に戻ってください。"
+            );
+            return token;
+        }
+        catch (TimeoutException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await _sessionStore.MarkFailedAsync(profileKey, session.SessionId, ex.Message);
+            throw;
+        }
     }
 
     private async Task<OAuthToken> ExchangeCodeForTokenAsync(string redirectUri)
@@ -59,9 +83,23 @@ public class OAuthService
         AppLog.Debug("[OAuthService] ExchangeCodeForTokenAsync start, redirectUri={0}", redirectUri);
 
         var query = System.Web.HttpUtility.ParseQueryString(new Uri(redirectUri).Query);
+        string? error = query["error"];
+        if (!string.IsNullOrEmpty(error))
+        {
+            var description = query["error_description"] ?? "";
+            throw new Exception($"OAuth callback error: {error} {description}".Trim());
+        }
+
         string? code = query["code"];
         if (string.IsNullOrEmpty(code))
             throw new Exception("No code in redirect URI.");
+
+        string? state = query["state"];
+        if (string.IsNullOrEmpty(state))
+            throw new Exception("No state in redirect URI.");
+
+        if (string.IsNullOrEmpty(_state) || !string.Equals(state, _state, StringComparison.Ordinal))
+            throw new Exception("OAuth state mismatch.");
 
         using var client = new HttpClient();
         var post = new FormUrlEncodedContent(new[]
@@ -92,6 +130,7 @@ public class OAuthService
         AppLog.Debug("[OAuthService] [DEBUG] Deserialized token: expires_in={0}, refresh_token={1}",
             token.ExpiresIn, string.IsNullOrEmpty(token.RefreshToken) ? "none" : "exists");
 
+        _state = null;
         return token;
     }
 

@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "tasks": [
+    {
+      "id": null,
+      "title": "<朝>くすり",
+      "parent": null,
+      "parent_key": null,
+      "pomodoro_planned": null,
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "VjJIWi0wN2NZWEh6OTVkbw",
+      "title": "テスト１",
+      "parent": null,
+      "parent_key": null,
+      "pomodoro_planned": null,
+      "tags": [
+        "プロト",
+        "md-ast-core"
+      ],
+      "goal": "フロントマター処理結合"
+    },
+    {
+      "id": null,
+      "title": "テスト２",
+      "parent": null,
+      "parent_key": null,
+      "pomodoro_planned": null,
+      "tags": [
+        "プロト",
+        "ptune-sync-skel"
+      ],
+      "goal": "cli見直し"
+    },
+    {
+      "id": null,
+      "title": "タスク３",
+      "parent": null,
+      "parent_key": "テスト２",
+      "pomodoro_planned": 1,
+      "tags": [
+        "分類/調査"
+      ],
+      "goal": null
+    },
+    {
+      "id": null,
+      "title": "タスク４",
+      "parent": null,
+      "parent_key": "テスト２",
+      "pomodoro_planned": 2,
+      "tags": [
+        "分類/修正"
+      ],
+      "goal": null
+    },
+    {
+      "id": null,
+      "title": "<夜>プール",
+      "parent": null,
+      "parent_key": null,
+      "pomodoro_planned": null,
+      "tags": [],
+      "goal": null
+    }
+  ],
+  "deleted_tasks": [
+    {
+      "id": "ZWIzMmFEZGV6NVViOE1rYg",
+      "composite_key": "テスト１__タスク１",
+      "parent_title": "テスト１",
+      "title": "タスク１"
+    },
+    {
+      "id": "MmQ3dVNadkNGbFdDYmFMWg",
+      "composite_key": "テスト１__タスク２",
+      "parent_title": "テスト１",
+      "title": "タスク２"
+    }
+  ]
+}

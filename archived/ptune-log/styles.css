@@ -1,0 +1,406 @@
+/* 通常表示 */
+.tasks-export-status {
+  color: var(--text-normal);
+}
+
+/* エラー表示 */
+.tasks-export-status-error {
+  color: var(--text-error);
+  /* Obsidian のテーマに連動した赤 */
+}
+
+/* 警告用 */
+.tasks-export-warning {
+  color: var(--text-warning);
+}
+
+/* ファイルエクスプローラ階層インデントを狭くする */
+.nav-folder-children {
+  margin-left: 1px !important;
+  /* 通常は16px程度 → 8pxに */
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+/* ファイルとフォルダの行間を狭くする */
+.nav-file-title,
+.nav-folder-title {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+  line-height: 1.1 !important;
+}
+
+/* アウトライン階層インデントを狭くする */
+.workspace-leaf-content[data-type='outline'] .tree-item-children {
+  margin-left: 1px !important;
+  /* インデント幅 */
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+/* アウトライン項目の行間を狭くする */
+.workspace-leaf-content[data-type='outline'] .tree-item-self {
+  padding-top: 1px !important;
+  /* 行間上部 */
+  padding-bottom: 1px !important;
+  /* 行間下部 */
+  line-height: 1.1 !important;
+  /* 行の高さ */
+}
+
+/* テキストのオーバーフロー対策（...表示） */
+.workspace-leaf-content[data-type='outline'] .tree-item-self .tree-item-inner {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* テキストエリアのスタイル調整 */
+.long-text-input {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* 新規ノート作成モーダル — prefix/suffix */
+.filename-prefix,
+.filename-suffix {
+  font-family: monospace;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+/* prefix の左側余白（TS側 .style.marginRight を排除した代替） */
+.filename-prefix {
+  margin-right: 4px;
+}
+
+/* suffix の右側余白（TS側 .style.marginLeft を排除した代替） */
+.filename-suffix {
+  margin-left: 4px;
+}
+
+
+.my-template-textarea {
+  width: 100%;
+  height: 150px;
+  font-family: monospace;
+  resize: vertical;
+  /* 任意でリサイズ許可 */
+}
+
+/* Google Tasks リセットモーダル用プログレスバー */
+.gtasks-reset-modal progress,
+.gtasks-export-modal progress,
+.llm-tag-generate-modal progress {
+  width: 100%;
+  margin: 0.5em 0;
+  appearance: none;
+}
+
+/* タグペイン全体のフォント・行間の縮小 */
+.workspace-leaf-content[data-type='tag'] .tree-item-self {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  line-height: 1.1 !important;
+}
+
+/* タグ階層のインデントを縮小 */
+.workspace-leaf-content[data-type='tag'] .tree-item-children {
+  margin-left: 1px !important;
+}
+
+/* アウトラインビュー */
+
+.outline-list {
+  border: 1px solid #ccc;
+  font-family: monospace;
+  font-size: 13px;
+  /* 少しだけ縮小 */
+  line-height: 1.1;
+  /* 行間を狭める */
+  max-height: 250px;
+  overflow-y: auto;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outline-line {
+  white-space: pre;
+  /* 改行させない */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* 長文を省略表示 */
+  padding: 1px 6px;
+  /* 上下パディング縮小 */
+  font-family: monospace;
+  cursor: default;
+}
+
+.outline-line:hover {
+  background-color: #f0f0f0;
+}
+
+.outline-line.selected {
+  background-color: #4477dd44;
+}
+
+/* タグ検索ビュー */
+.tag-rename-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tag-rename-tabs button.active {
+  background-color: var(--interactive-accent);
+  color: white;
+}
+
+.tag-candidate-warning {
+  color: var(--text-warning);
+  margin-top: 1em;
+  font-size: 0.9em;
+}
+
+.hidden {
+  display: none;
+}
+
+.tag-rename-input {
+  width: 100%;
+  font-size: 14px;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.tag-candidate-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.tag-candidate-item {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.tag-candidate-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* Tag Edit Dialog input layout */
+.tag-edit-input-wide {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* NoteReviewModal: Summary 編集用テキストエリア */
+.ptune-review-summary-fullwidth {
+  width: 100%;
+  min-height: 8em;
+  /* 6〜8行を推奨 */
+  max-height: 300px;
+
+  box-sizing: border-box;
+  font-family: var(--font-text);
+  line-height: 1.5;
+
+  padding: 8px;
+  resize: vertical;
+
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+}
+
+/* 見出しとノートパス用のスタイル（強調控えめ） */
+.ptune-review-note-header {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 0.5em;
+  word-break: break-all;
+}
+
+/* NoteReviewModal: タグ一覧 */
+.ptune-tag-list {
+  margin-top: 6px;
+}
+
+.ptune-tag-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ptune-tag-link {
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ptune-tag-link:hover {
+  text-decoration: underline;
+}
+
+.ptune-review-daily-toggle {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.ptune-review-task-select {
+  margin-bottom: 0.5em;
+}
+
+/* タグ一覧ヘッダ行（左右並び） */
+.ptune-tag-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+/* 新規タグ表示用バッジ */
+.ptune-tag-badge-new {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.75em;
+  border-radius: 6px;
+  background-color: var(--color-accent);
+  color: var(--text-on-accent);
+  vertical-align: middle;
+}
+
+/* タイトルの余白調整（Obsidian 既定より少しコンパクトに） */
+.ptune-tag-header-title {
+  margin: 0;
+  padding: 0;
+}
+
+/* 追加ボタン（Obsidian の標準ボタンに近い見た目） */
+.ptune-tag-add-btn {
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--interactive-accent);
+  color: var(--text-normal);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ptune-tag-add-btn:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* TagMergeResultDialog */
+
+.tag-merge-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: 0.8em;
+  margin-bottom: 0.3em;
+}
+
+.tag-merge-group-list {
+  margin-left: 1.2em;
+}
+
+.tag-merge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  line-height: 1.4;
+  margin: 2px 0;
+}
+
+.tag-merge-to-link {
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.tag-merge-group-title.link {
+  cursor: pointer;
+  color: var(--text-accent);
+  text-decoration: underline;
+}
+
+/* tag-merge-flow.css */
+
+.tag-merge-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tag-merge-actions .setting-item-control {
+  display: flex;
+  gap: 8px;
+}
+
+/* body 全体ラッパー */
+.tag-merge-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 結果一覧のスクロール領域 */
+.tag-merge-body-scroll {
+  max-height: 55vh;        /* 表示制限の主制御 */
+  overflow-y: auto;
+  padding-right: 4px;     /* スクロールバー分の余白 */
+}
+
+/* 操作ボタン領域（既存クラス） */
+.tag-merge-actions {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* ============================
+ * Tag Merge Priority Tabs
+ * ============================ */
+
+.tag-merge-priority-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0 12px;
+  flex-wrap: wrap; /* 画面が狭い場合に折り返し */
+}
+
+/* button 風タブ */
+.tag-merge-priority-tab {
+  padding: 4px 12px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* hover */
+.tag-merge-priority-tab:hover {
+  background-color: var(--background-secondary-alt);
+}
+
+/* active タブ */
+.tag-merge-priority-tab.is-active {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+  font-weight: 600;
+}
+

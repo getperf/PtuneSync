@@ -16,7 +16,7 @@ public class GoogleTasksAPI
 {
     private readonly OAuthManager _oauthManager;
 
-    public const string DefaultTodayListName = "Today";
+    public const string DefaultTodayListName = "_Today";
 
     public GoogleTasksAPI(OAuthManager oauthManager)
     {
@@ -189,7 +189,7 @@ public class GoogleTasksAPI
         var token = await _oauthManager.GetOrRefreshAsync();
         var api = new GoogleTasksApiClient(token.AccessToken);
 
-        var body = BuildTaskBody(task);
+        var body = BuildTaskBody(task, includeId: false);
         AppLog.Debug("[GoogleTasksAPI] POST body.len={0}", BodyLen(body));
 
         var url = $"https://tasks.googleapis.com/tasks/v1/lists/{taskListId}/tasks";
@@ -207,7 +207,7 @@ public class GoogleTasksAPI
         var token = await _oauthManager.GetOrRefreshAsync();
         var api = new GoogleTasksApiClient(token.AccessToken);
 
-        var body = BuildTaskBody(task);
+        var body = BuildTaskBody(task, includeId: true);
         var url = $"https://tasks.googleapis.com/tasks/v1/lists/{taskListId}/tasks/{task.Id}";
         await api.RequestAsync<object?>(url, HttpMethod.Put, body);
         AppLog.Info("[GoogleTasksAPI] Updated task id={0}", task.Id);
@@ -243,22 +243,15 @@ public class GoogleTasksAPI
 
     // ---------- helpers ----------
 
-    private static object BuildTaskBody(MyTask task)
+    private static object BuildTaskBody(MyTask task, bool includeId)
     {
-        var notesParts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(task.Note)) notesParts.Add(task.Note);
-        if (task.Pomodoro != null && task.Pomodoro.Planned > 0)
-        {
-            var s = $"🍅x{task.Pomodoro.Planned}";
-            if (task.Pomodoro.Actual.HasValue) s += $" ✅x{task.Pomodoro.Actual}";
-            notesParts.Add(s);
-        }
         var body = new Dictionary<string, object?>
         {
             ["title"] = task.Title,
-            ["notes"] = string.Join(' ', notesParts).Trim(),
+            ["notes"] = task.BuildNotesPayload(),
             ["status"] = string.IsNullOrEmpty(task.Status) ? "needsAction" : task.Status
         };
+        if (includeId && !string.IsNullOrEmpty(task.Id)) body["id"] = task.Id;
         if (!string.IsNullOrEmpty(task.Parent)) body["parent"] = task.Parent;
         if (!string.IsNullOrEmpty(task.Due)) body["due"] = task.Due;
         return body;

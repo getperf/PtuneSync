@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ptune-sync-skel"
+version = "0.1.0"
+description = "PtuneSync verification skeleton (Google Tasks + Markdown sync)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Ptune Project" }
+]
+
+dependencies = [
+  "httpx",
+  "pydantic",
+  "typer",
+  "python-dotenv",
+  "requests>=2.32.5",
+  "platformdirs>=4.9.2",
+  "jsonschema>=4.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[project.scripts]
+ptune-sync = "ptune_sync.cli.main:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

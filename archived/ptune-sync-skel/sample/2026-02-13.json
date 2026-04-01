@@ -1,0 +1,111 @@
+{
+  "list": "_Today",
+  "exported_at": "2026-02-13T08:29:19.667786",
+  "tasks": [
+    {
+      "id": "dEZsQVNxN1I5cHpKeDhNcA",
+      "title": "タスク４",
+      "pomodoro_planned": 2,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": "SUtwUEdDbkZlMlF5VklpTg",
+      "tags": [],
+      "goal": "Hoge"
+    },
+    {
+      "id": "cXBZNE5YZnpBRm9DTDYwMg",
+      "title": "タスク３",
+      "pomodoro_planned": 1,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": "SUtwUEdDbkZlMlF5VklpTg",
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "MmQ3dVNadkNGbFdDYmFMWg",
+      "title": "タスク２",
+      "pomodoro_planned": 1,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": "VjJIWi0wN2NZWEh6OTVkbw",
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "ZWIzMmFEZGV6NVViOE1rYg",
+      "title": "タスク１",
+      "pomodoro_planned": 2,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": "VjJIWi0wN2NZWEh6OTVkbw",
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "R0FieDhSMW80TkJSOHc3TA",
+      "title": "<夜>プール",
+      "pomodoro_planned": null,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": null,
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "SUtwUEdDbkZlMlF5VklpTg",
+      "title": "テスト２",
+      "pomodoro_planned": null,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": null,
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "VjJIWi0wN2NZWEh6OTVkbw",
+      "title": "テスト１",
+      "pomodoro_planned": null,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": null,
+      "tags": [],
+      "goal": null
+    },
+    {
+      "id": "VjltbnVnQ0lGRjNJZ09wbA",
+      "title": "<朝>くすり",
+      "pomodoro_planned": null,
+      "pomodoro_actual": null,
+      "review_flags": [],
+      "started": null,
+      "completed": null,
+      "status": "needsAction",
+      "parent": null,
+      "tags": [],
+      "goal": null
+    }
+  ],
+  "schema_version": 2
+}

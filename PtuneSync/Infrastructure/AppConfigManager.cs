@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -27,8 +29,9 @@ public static class AppConfigManager
             if (File.Exists(ConfigPath))
             {
                 var json = File.ReadAllText(ConfigPath, Encoding.UTF8);
-                Config = JsonSerializer.Deserialize<AppConfig>(json, CreateOptions())
-                         ?? AppConfig.Default();
+                Config = Normalize(
+                    JsonSerializer.Deserialize<AppConfig>(json, CreateOptions())
+                    ?? AppConfig.Default());
             }
             else
             {
@@ -55,5 +58,53 @@ public static class AppConfigManager
 
         Directory.CreateDirectory(dir);
         File.WriteAllText(ConfigPath, json, new UTF8Encoding(false));
+    }
+
+    public static void RememberVaultHome(string? vaultHome)
+    {
+        if (string.IsNullOrWhiteSpace(vaultHome))
+            return;
+
+        var normalized = Path.GetFullPath(vaultHome);
+        if (string.Equals(Config.Database.LastVaultHome, normalized, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Config.Database.LastVaultHome = normalized;
+        Save();
+    }
+
+    private static AppConfig Normalize(AppConfig config)
+    {
+        var defaults = AppConfig.Default();
+
+        config.Logging ??= defaults.Logging;
+        config.GoogleOAuth ??= defaults.GoogleOAuth;
+        config.Database ??= defaults.Database;
+        config.TaskMetadata ??= defaults.TaskMetadata;
+        config.OtherSettings ??= defaults.OtherSettings;
+
+        config.TaskMetadata.TagSuggestions = NormalizeSuggestionList(
+            config.TaskMetadata.TagSuggestions,
+            defaults.TaskMetadata.TagSuggestions);
+        config.TaskMetadata.GoalSuggestions = NormalizeSuggestionList(
+            config.TaskMetadata.GoalSuggestions,
+            defaults.TaskMetadata.GoalSuggestions);
+
+        return config;
+    }
+
+    private static List<string> NormalizeSuggestionList(
+        List<string>? values,
+        List<string> defaults)
+    {
+        var source = values is { Count: > 0 } ? values : defaults;
+
+        return source
+            .SelectMany(static value => (value ?? string.Empty)
+                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None))
+            .Select(static value => value.Trim())
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
     }
 }

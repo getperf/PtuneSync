@@ -1,7 +1,12 @@
 // File: Models/TaskItem.cs
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 namespace PtuneSync.Models;
 
@@ -10,6 +15,10 @@ public class TaskItem : INotifyPropertyChanged
     private string _title = string.Empty;
     private bool _isChild;
     private int _plannedPomodoroCount;
+    private string _status = "needsAction";
+    private string? _goal;
+    private string? _completed;
+    private int _goalSuggestionIndex = -1;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -50,6 +59,48 @@ public class TaskItem : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
+    public string? RemoteId { get; set; }
+
+    public string? RemoteParentId { get; set; }
+
+    public string Status
+    {
+        get => _status;
+        set
+        {
+            if (_status == value) return;
+            _status = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCompleted));
+            OnPropertyChanged(nameof(TitleForeground));
+        }
+    }
+
+    public string? Started { get; set; }
+
+    public string? Completed
+    {
+        get => _completed;
+        set
+        {
+            if (_completed == value) return;
+            _completed = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCompleted));
+            OnPropertyChanged(nameof(TitleForeground));
+        }
+    }
+
+    public string? Due { get; set; }
+
+    public bool IsCompleted =>
+        string.Equals(Status, "completed", System.StringComparison.OrdinalIgnoreCase)
+        || !string.IsNullOrWhiteSpace(Completed);
+
+    public Brush TitleForeground => IsCompleted
+        ? new SolidColorBrush(ColorHelper.FromArgb(255, 0x8A, 0x8F, 0x98))
+        : new SolidColorBrush(Colors.Black);
 
     // ★ 初期化中は 1 行目ガード無効化
     public bool IsChild
@@ -96,6 +147,97 @@ public class TaskItem : INotifyPropertyChanged
 
     public bool IsToggleEnabled => Index != 0;
 
+    public ObservableCollection<TagSuggestionItem> TagSuggestions { get; } = new();
+
+    public IReadOnlyList<string> GoalSuggestions { get; private set; } = System.Array.Empty<string>();
+
+    public string? Goal
+    {
+        get => _goal;
+        set
+        {
+            if (_goal == value) return;
+            _goal = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(GoalLabel));
+        }
+    }
+
+    public string GoalLabel =>
+        string.IsNullOrWhiteSpace(Goal) ? "Goal" : $"Goal: {Goal}";
+
+    public void InitializeMetadataSuggestions(IEnumerable<string> tagSuggestions, IEnumerable<string> goalSuggestions)
+    {
+        TagSuggestions.Clear();
+        foreach (var tag in tagSuggestions.Where(static tag => !string.IsNullOrWhiteSpace(tag)))
+        {
+            TagSuggestions.Add(new TagSuggestionItem(tag.Trim()));
+        }
+
+        GoalSuggestions = goalSuggestions
+            .Where(static goal => !string.IsNullOrWhiteSpace(goal))
+            .Select(static goal => goal.Trim())
+            .Distinct()
+            .ToList();
+
+        _goalSuggestionIndex = string.IsNullOrWhiteSpace(Goal)
+            ? -1
+            : GoalSuggestions.ToList().IndexOf(Goal);
+
+        OnPropertyChanged(nameof(GoalSuggestions));
+    }
+
+    public void ToggleTag(string tag)
+    {
+        var item = TagSuggestions.FirstOrDefault(option => option.Name == tag);
+        if (item is null)
+            return;
+
+        item.IsSelected = !item.IsSelected;
+    }
+
+    public IReadOnlyList<string> GetSelectedTags()
+    {
+        return TagSuggestions
+            .Where(static option => option.IsSelected)
+            .Select(static option => option.Name)
+            .ToList();
+    }
+
+    public void SetSelectedTags(IEnumerable<string>? tags)
+    {
+        var selected = new HashSet<string>(
+            tags?.Where(static tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(static tag => tag.Trim())
+                ?? Enumerable.Empty<string>(),
+            System.StringComparer.Ordinal);
+
+        foreach (var item in TagSuggestions)
+        {
+            item.IsSelected = selected.Contains(item.Name);
+        }
+    }
+
+    public void CycleGoal()
+    {
+        if (GoalSuggestions.Count == 0)
+        {
+            Goal = null;
+            _goalSuggestionIndex = -1;
+            return;
+        }
+
+        _goalSuggestionIndex++;
+        if (_goalSuggestionIndex >= GoalSuggestions.Count)
+        {
+            _goalSuggestionIndex = -1;
+            Goal = null;
+            return;
+        }
+
+        Goal = GoalSuggestions[_goalSuggestionIndex];
+    }
+
     public void IncrementPomodoro(int max = 5)
     {
         PlannedPomodoroCount++;
@@ -108,4 +250,30 @@ public class TaskItem : INotifyPropertyChanged
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}
+
+public sealed class TagSuggestionItem : INotifyPropertyChanged
+{
+    private bool _isSelected;
+
+    public TagSuggestionItem(string name)
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
+    public string DisplayName => $"#{Name}";
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value) return;
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
