@@ -109,7 +109,7 @@ public sealed class PullCommandService
             list = listName,
             include_completed = includeCompleted,
             exported_at = exportedAt,
-            tasks = responseTasks,
+            tasks = TaskJsonDocumentReader.ToTaskJsonTasks(responseTasks),
         };
 
         var runDir = request.ResolveRunDir();

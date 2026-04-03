@@ -68,6 +68,7 @@ public sealed class RunPullHandler : IProtocolHandler
 
                 var service = new PullCommandService();
                 var result = await service.ExecuteAsync(runRequest);
+                var contractTasks = TaskJsonDocumentReader.ToTaskJsonTasks(result.ResponseTasks);
 
                 await RunStatusFileService.WriteAsync(
                     statusFile,
@@ -82,10 +83,10 @@ public sealed class RunPullHandler : IProtocolHandler
                         list = result.ListName,
                         include_completed = result.IncludeCompleted,
                         exported_at = result.ExportedAt,
-                        tasks = result.ResponseTasks,
+                        tasks = contractTasks,
                         meta = new
                         {
-                            task_count = result.ResponseTasks.Count,
+                            task_count = contractTasks.Count,
                             fetched_count = result.TotalFetchedCount,
                             history_saved_count = result.HistorySavedCount,
                             sync_history_id = result.SyncHistoryId,

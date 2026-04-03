@@ -29,7 +29,7 @@ public static class TaskJsonDocumentReader
         {
             result.Add(new MyTask(task.Id ?? string.Empty, task.Title ?? string.Empty, task.ToPomodoro(), task.Status ?? "needsAction")
             {
-                Parent = null,
+                Parent = task.Parent,
                 Due = task.Due,
                 Started = task.Started,
                 Completed = task.Completed,
@@ -37,6 +37,33 @@ public static class TaskJsonDocumentReader
                 Goal = task.Goal,
                 Tags = task.Tags is { Count: > 0 } ? new List<string>(task.Tags) : null,
                 ReviewFlags = task.ReviewFlags is { Count: > 0 } ? new HashSet<string>(task.ReviewFlags) : null,
+            });
+        }
+
+        return result;
+    }
+
+    public static List<TaskJsonTask> ToTaskJsonTasks(IEnumerable<MyTask> tasks)
+    {
+        var result = new List<TaskJsonTask>();
+
+        foreach (var task in tasks)
+        {
+            result.Add(new TaskJsonTask
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Parent = task.Parent,
+                PomodoroPlanned = task.Pomodoro?.Planned,
+                PomodoroActual = task.Pomodoro?.Actual,
+                Status = task.Status,
+                Started = task.Started,
+                Completed = task.Completed,
+                Due = task.Due,
+                Note = task.Note,
+                Goal = task.Goal,
+                Tags = task.Tags is { Count: > 0 } ? new List<string>(task.Tags) : null,
+                ReviewFlags = task.ReviewFlags is { Count: > 0 } ? new List<string>(task.ReviewFlags) : null,
             });
         }
 
