@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PtuneSync\PtuneSync.csproj" />
+    <ProjectReference Include="..\PtuneSync.Core\PtuneSync.Core.csproj" />
   </ItemGroup>
 
 </Project>

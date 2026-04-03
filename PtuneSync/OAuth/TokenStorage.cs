@@ -1,8 +1,6 @@
 using System.IO;
 using System.Text.Json;
-using PtuneSync.OAuth;
 using Serilog;
-using PtuneSync.Infrastructure;
 using System;
 
 namespace PtuneSync.OAuth;
@@ -22,22 +20,22 @@ public class TokenStorage
         token.ExpiresAt = DateTime.Now.AddSeconds(token.ExpiresIn);
         var json = JsonSerializer.Serialize(token, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(_path, json);
-        AppLog.Debug("[TokenStorage] Saved token.json -> {0}", _path);
-        AppLog.Debug("[TokenStorage] ExpiresAt={0}", token.ExpiresAt);
+        Log.Debug("[TokenStorage] Saved token.json -> {Path}", _path);
+        Log.Debug("[TokenStorage] ExpiresAt={ExpiresAt}", token.ExpiresAt);
     }
 
     public OAuthToken? Load()
     {
         if (!File.Exists(_path))
         {
-            AppLog.Debug("[TokenStorage] token.json not found: {0}", _path);
+            Log.Debug("[TokenStorage] token.json not found: {Path}", _path);
             return null;
         }
 
         var json = File.ReadAllText(_path);
         var token = JsonSerializer.Deserialize<OAuthToken>(json);
-        AppLog.Debug("[TokenStorage] Loaded token.json -> {0}", _path);
-        AppLog.Debug("[TokenStorage] ExpiresAt={0}", token?.ExpiresAt.ToString() ?? "unkown");
+        Log.Debug("[TokenStorage] Loaded token.json -> {Path}", _path);
+        Log.Debug("[TokenStorage] ExpiresAt={ExpiresAt}", token?.ExpiresAt.ToString() ?? "unknown");
         return token;
     }
 
@@ -45,11 +43,11 @@ public class TokenStorage
     {
         if (!File.Exists(_path))
         {
-            AppLog.Debug("[TokenStorage] Delete skipped; token.json not found: {0}", _path);
+            Log.Debug("[TokenStorage] Delete skipped; token.json not found: {Path}", _path);
             return;
         }
 
         File.Delete(_path);
-        AppLog.Info("[TokenStorage] Deleted token.json -> {0}", _path);
+        Log.Information("[TokenStorage] Deleted token.json -> {Path}", _path);
     }
 }

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PtuneSync\Models\MyTask.cs" Link="Models\MyTask.cs" />
+    <Compile Include="..\PtuneSync\Models\MyTaskFactory.cs" Link="Models\MyTaskFactory.cs" />
+    <Compile Include="..\PtuneSync\Models\MyTaskList.cs" Link="Models\MyTaskList.cs" />
+    <Compile Include="..\PtuneSync\Models\PomodoroInfo.cs" Link="Models\PomodoroInfo.cs" />
+    <Compile Include="..\PtuneSync\Models\ReviewFlag.cs" Link="Models\ReviewFlag.cs" />
+    <Compile Include="..\PtuneSync\Models\ReviewFlagNotesDecoder.cs" Link="Models\ReviewFlagNotesDecoder.cs" />
+    <Compile Include="..\PtuneSync\Models\ReviewFlagNotesEncoder.cs" Link="Models\ReviewFlagNotesEncoder.cs" />
+    <Compile Include="..\PtuneSync\OAuth\OAuthToken.cs" Link="OAuth\OAuthToken.cs" />
+    <Compile Include="..\PtuneSync\OAuth\TokenStorage.cs" Link="OAuth\TokenStorage.cs" />
+    <Compile Include="..\PtuneSync\Services\TaskJsonDocumentReader.cs" Link="Services\TaskJsonDocumentReader.cs" />
+  </ItemGroup>
+
+</Project>

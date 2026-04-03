@@ -47,6 +47,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PtuneSync.Core\PtuneSync.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\MyTask.cs" />
+    <Compile Remove="Models\MyTaskFactory.cs" />
+    <Compile Remove="Models\MyTaskList.cs" />
+    <Compile Remove="Models\PomodoroInfo.cs" />
+    <Compile Remove="Models\ReviewFlag.cs" />
+    <Compile Remove="Models\ReviewFlagNotesDecoder.cs" />
+    <Compile Remove="Models\ReviewFlagNotesEncoder.cs" />
+    <Compile Remove="OAuth\OAuthToken.cs" />
+    <Compile Remove="OAuth\TokenStorage.cs" />
+    <Compile Remove="Services\TaskJsonDocumentReader.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Infrastructure\Sqlite\SqlScripts\**\*.sql" />
   </ItemGroup>
 
