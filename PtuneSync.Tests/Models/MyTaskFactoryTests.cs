@@ -13,7 +13,7 @@ public class MyTaskFactoryTests
         {
             ["id"] = "123",
             ["title"] = "Test Task",
-            ["notes"] = "Note 🍅x2 ✅x1",
+            ["notes"] = "Note\n🍅planned=2\nactual=1",
             ["status"] = "needsAction",
             ["due"] = "2024-06-13T10:00:00.000Z"
         };
@@ -49,7 +49,7 @@ public class MyTaskFactoryTests
         {
             ["id"] = "2",
             ["title"] = "Zero Tomato",
-            ["notes"] = "prep 🍅x0"
+            ["notes"] = "prep\n🍅planned=0"
         };
         var task = MyTaskFactory.FromApiData(api, "today");
         Assert.Null(task.Pomodoro);
@@ -62,7 +62,7 @@ public class MyTaskFactoryTests
         {
             ["id"] = "3",
             ["title"] = "Valid Pomodoro",
-            ["notes"] = "task 🍅x3 ✅x2"
+            ["notes"] = "task\n🍅planned=3\nactual=2"
         };
         var task = MyTaskFactory.FromApiData(api, "today");
         Assert.NotNull(task.Pomodoro);
@@ -86,26 +86,27 @@ public class MyTaskFactoryTests
     }
 
     [Fact]
-    public void ParsesStartedAndCompletedFromNotes()
+    public void ParsesStartedFromNotes()
     {
-        var notes = "🍅x1 ✅x1 started=2025-07-27T09:47:49.902210 completed=2025-07-27T09:48:16.564339";
+        var notes = "🍅planned=1\nactual=1\nstarted=2025-07-27T09:47:49.902210";
         var api = new Dictionary<string, object>
         {
             ["id"] = "123",
             ["title"] = "Test Task",
             ["notes"] = notes,
+            ["completed"] = "2025-07-27T09:48:16.564339Z",
             ["updated"] = "2025-07-27T09:50:00.000Z"
         };
         var task = MyTaskFactory.FromApiData(api, "list-1");
         Assert.Equal("2025-07-27T09:47:49.902210", task.Started);
-        Assert.Equal("2025-07-27T09:48:16.564339", task.Completed);
+        Assert.Equal("2025-07-27T09:48:16.564Z", task.Completed);
         Assert.Null(task.Note);
     }
 
     [Fact]
     public void ParsesOnlyStartedWhenCompletedMissing()
     {
-        var notes = "🍅x2 started=2025-07-27T09:00:00.000Z";
+        var notes = "🍅planned=2\nstarted=2025-07-27T09:00:00.000Z";
         var api = new Dictionary<string, object>
         {
             ["id"] = "456",
@@ -124,7 +125,7 @@ public class MyTaskFactoryTests
         {
             ["id"] = "789",
             ["title"] = "API Completed",
-            ["notes"] = "🍅x1",
+            ["notes"] = "🍅planned=1",
             ["completed"] = "2025-07-27T10:00:00.000Z"
         };
         var task = MyTaskFactory.FromApiData(api);
@@ -138,7 +139,7 @@ public class MyTaskFactoryTests
         {
             ["id"] = "999",
             ["title"] = "Cleanup Note",
-            ["notes"] = "memo 🍅x1 started=2025-07-27T00:47:49.902210 completed=2025-07-27T00:48:16.564339"
+            ["notes"] = "memo\n🍅planned=1\nstarted=2025-07-27T00:47:49.902210"
         };
         var task = MyTaskFactory.FromApiData(api);
         Assert.Equal("memo", task.Note);

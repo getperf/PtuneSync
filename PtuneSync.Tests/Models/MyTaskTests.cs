@@ -22,7 +22,7 @@ public class MyTaskTests
         };
         var data = task.ToApiData();
         Assert.Equal("Title", data["title"]);
-        Assert.Contains("🍅x2", data["notes"].ToString());
+        Assert.Contains("🍅planned=2", data["notes"].ToString());
         Assert.Equal("needsAction", data["status"]);
     }
 

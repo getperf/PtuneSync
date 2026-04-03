@@ -9,7 +9,7 @@ public class ReviewFlagNotesDecoderTests
     [Fact]
     public void Decode_FindsFlags()
     {
-        var notes = "aaa\n#ptune:review=stuckUnknown,unresolved\nbbb";
+        var notes = "aaa\nreviewFlags=stuckUnknown,unresolved\nbbb";
         var flags = ReviewFlagNotesDecoder.Decode(notes);
 
         Assert.Contains(ReviewFlagKeys.stuckUnknown, flags);

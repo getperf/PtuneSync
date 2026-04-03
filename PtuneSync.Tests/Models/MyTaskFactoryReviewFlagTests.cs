@@ -15,7 +15,7 @@ public class MyTaskFactoryReviewFlagTests
             ["id"] = "task1",
             ["title"] = "Test Task",
             ["status"] = "needsAction",
-            ["notes"] = "#ptune:review=stuckUnknown,unresolved"
+            ["notes"] = "reviewFlags=stuckUnknown,unresolved"
         };
 
         var task = MyTaskFactory.FromApiData(apiTask);
