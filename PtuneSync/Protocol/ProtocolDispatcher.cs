@@ -13,9 +13,6 @@ public static class ProtocolDispatcher
 
     private static readonly Dictionary<string, IProtocolHandler> _handlers = new()
     {
-        { "launch", new Handlers.LaunchHandler() },
-        { "get-tasks-md", new Handlers.GetTasksMarkdownHandler() },
-        { "auth", new Handlers.AuthHandler() },
         { "run/launch", new Handlers.RunLaunchHandler() },
         { "run/ping", new Handlers.RunPingHandler() },
         { "run/auth/status", new Handlers.RunAuthStatusHandler() },

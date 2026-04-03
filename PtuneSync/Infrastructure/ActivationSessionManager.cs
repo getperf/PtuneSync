@@ -4,17 +4,12 @@ using PtuneSync.Infrastructure;
 
 public static class SessionNames
 {
-    public const string Auth = "auth";
-    public const string Import = "import";
-    public const string Export = "export";
     public const string RunAuthLogin = "run-auth-login";
     public const string RunAuthStatus = "run-auth-status";
     public const string RunLaunch = "run-launch";
     public const string RunPing = "run-ping";
     public const string RunPull = "run-pull";
     public const string RunReview = "run-review";
-
-    public const string GetTasksMarkdown = "get-tasks-md";
 }
 
 public static class ActivationSessionManager
