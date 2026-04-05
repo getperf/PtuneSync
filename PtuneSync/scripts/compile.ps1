@@ -1,5 +1,5 @@
 param(
-    [string]$Config = "Debug",
+    [string]$Config = "Release",
     [string]$Platform = "x64"
 )
 
