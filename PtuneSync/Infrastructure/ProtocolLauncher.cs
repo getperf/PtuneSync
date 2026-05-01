@@ -114,15 +114,23 @@ public class ProtocolLauncher
 
                     if (status != null)
                     {
-                        // operation 不一致はスキップ
-                        if (status.operation != op)
+                        var statusCommand = status.command ?? status.operation;
+
+                        // command/operation 不一致はスキップ
+                        if (!string.Equals(statusCommand, op, StringComparison.OrdinalIgnoreCase))
                         {
-                            AppLog.Debug("[ProtocolLauncher] operation mismatch: {0}", status.operation);
+                            AppLog.Debug("[ProtocolLauncher] command mismatch: {0}", statusCommand ?? "<null>");
                             goto CONTINUE;
                         }
 
                         AppLog.Info("[ProtocolLauncher] status={0}, msg={1}",
                             status.status, status.message ?? "");
+
+                        if (!string.IsNullOrWhiteSpace(status.phase)
+                            && !string.Equals(status.phase, "completed", StringComparison.OrdinalIgnoreCase))
+                        {
+                            goto CONTINUE;
+                        }
 
                         if (status.status == "success")
                         {
@@ -161,5 +169,5 @@ public class ProtocolLauncher
         };
     }
 
-    private record StatusFile(string status, string operation, string? message);
+    private record StatusFile(string status, string? operation, string? command, string? phase, string? message);
 }

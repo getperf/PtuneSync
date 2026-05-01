@@ -190,11 +190,19 @@ namespace PtuneSync.ViewModels
             StatusMessage = AppStrings.ReauthStarting;
             AppLog.Debug("[MainViewModel] ReauthenticateAsync invoked");
 
-            var result = await _reauthService.ExecuteAsync();
+            try
+            {
+                var result = await _reauthService.ExecuteAsync();
 
-            StatusMessage = result.Success
-                ? AppStrings.ReauthCompleted
-                : $"再認証に失敗しました: {result.Message}";
+                StatusMessage = result.Success
+                    ? AppStrings.ReauthCompleted
+                    : $"再認証に失敗しました: {result.Message}";
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error(ex, "[MainViewModel] ReauthenticateAsync failed");
+                StatusMessage = $"再認証に失敗しました: {ex.Message}";
+            }
         }
 
         [RelayCommand]

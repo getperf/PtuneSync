@@ -1,14 +1,23 @@
 param(
-  [string]$Config = "Debug",
+  [string]$Config = "Release",
   [string]$Platform = "x64"
 )
 
 $packageName = "Getperf.PtuneSync"
 $processName = "PtuneSync"
 
-$pkg = Get-ChildItem "$PSScriptRoot\..\AppPackages" -Recurse -Filter "*_x64_${Config}.msix" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$packageFilter = if ($Config -eq "Release") {
+  "PtuneSync_*_${Platform}.msix"
+} else {
+  "PtuneSync_*_${Platform}_${Config}.msix"
+}
 
-if (-not $pkg) { Write-Error "MSIX not found"; exit 1 }
+$pkg = Get-ChildItem "$PSScriptRoot\..\AppPackages" -Recurse -Filter $packageFilter | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $pkg) { Write-Error "MSIX not found: $packageFilter"; exit 1 }
+
+Write-Host "== Selected package =="
+Write-Host $pkg.FullName
 
 Write-Host "== Stop running process =="
 Get-Process -Name $processName -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
