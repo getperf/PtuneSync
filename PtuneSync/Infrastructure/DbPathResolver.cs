@@ -5,6 +5,7 @@ namespace PtuneSync.Infrastructure;
 public static class DbPathResolver
 {
     private const string DbFileName = "ptune_sync.db";
+    private static readonly string VaultWorkRelativePath = Path.Combine(".obsidian", "plugins", "ptune-task", "work");
 
     public static string ResolveCurrent(string? vaultHome = null)
     {
@@ -18,6 +19,28 @@ public static class DbPathResolver
             DbLocationMode.VaultWork => ResolveVaultWork(vaultHome),
             _ => ResolveAppLocal(vaultHome),
         };
+    }
+
+    public static string NormalizeVaultHome(string vaultHome)
+    {
+        var normalized = Path.GetFullPath(vaultHome);
+
+        if (string.Equals(Path.GetFileName(normalized), DbFileName, StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = Path.GetDirectoryName(normalized)
+                ?? throw new InvalidOperationException($"Invalid database path: {vaultHome}");
+        }
+
+        var workPathSuffix = Path.DirectorySeparatorChar + VaultWorkRelativePath;
+        if (normalized.EndsWith(workPathSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            var root = normalized[..^workPathSuffix.Length];
+            return string.IsNullOrWhiteSpace(root)
+                ? Path.GetPathRoot(normalized) ?? normalized
+                : root;
+        }
+
+        return normalized;
     }
 
     public static bool TryResolveCurrentDisplayPath(out string? path)
@@ -50,13 +73,10 @@ public static class DbPathResolver
         if (string.IsNullOrWhiteSpace(vaultHome))
             throw new InvalidOperationException("VaultWork path resolution requires vaultHome.");
 
-        var resolvedVaultHome = Path.GetFullPath(vaultHome);
+        var resolvedVaultHome = NormalizeVaultHome(vaultHome);
         return Path.Combine(
             resolvedVaultHome,
-            ".obsidian",
-            "plugins",
-            "ptune-task",
-            "work",
+            VaultWorkRelativePath,
             DbFileName);
     }
 

@@ -65,7 +65,7 @@ public static class AppConfigManager
         if (string.IsNullOrWhiteSpace(vaultHome))
             return;
 
-        var normalized = Path.GetFullPath(vaultHome);
+        var normalized = DbPathResolver.NormalizeVaultHome(vaultHome);
         if (string.Equals(Config.Database.LastVaultHome, normalized, StringComparison.OrdinalIgnoreCase))
             return;
 
